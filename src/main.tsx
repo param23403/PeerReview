@@ -2,13 +2,20 @@ import * as React from "react"
 import * as ReactDOM from "react-dom/client"
 import { createBrowserRouter, RouterProvider } from "react-router-dom"
 import "./index.css"
-import Navbar from "./components/Navbar"
+
+import Layout from "./components/Layout"
+
 import Login from "./pages/Login"
+import Landing from "./pages/Landing"
 
 const router = createBrowserRouter([
 	{
-		element: <Navbar/>,
+		element: <Layout/>,
 		children: [
+			{
+				path: "/test",
+				element: <Landing/>
+			},
 			{
 				path: "login",
 				element: <Login/>
