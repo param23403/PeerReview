@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -11,7 +10,8 @@ import {
   CardFooter,
   CardHeader,
 } from "../components/ui/card";
-
+import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 interface SignUpFormData {
   firstName: string;
   lastName: string;
@@ -32,7 +32,7 @@ export default function SignUp() {
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
+  const db = getFirestore();
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setFormData((prev) => ({
@@ -61,11 +61,26 @@ export default function SignUp() {
     }
 
     try {
-      await createUserWithEmailAndPassword(
+      const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
+
+      // Update the user's uid to match the computingId
+      await updateProfile(userCredential.user, {
+        displayName: `${formData.firstName} ${formData.lastName}`,
+      });
+
+      // Create a user document in Firestore
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        role: "student",
+        createdAt: new Date(),
+      });
+
       navigate("/login");
     } catch (error) {
       setError("Failed to create an account. Please try again.");
@@ -152,7 +167,6 @@ export default function SignUp() {
                 />
               </div>
             </div>
-            {/* {error && console.log("Alert")} */}
             <CardFooter className="flex justify-between mt-6">
               <Button
                 type="submit"
