@@ -8,6 +8,10 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { getFirestore, doc, setDoc } from "firebase/firestore"
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { FaEye, FaEyeSlash } from "react-icons/fa"
+import { toast } from "../hooks/use-toast"
+import { Toaster } from "../components/ui/toaster"
+import { FirebaseError } from "firebase/app"
+import { getFirebaseErrorMessage } from "../lib/utils"
 
 interface SignUpFormData {
 	firstName: string
@@ -29,7 +33,6 @@ export default function SignUp() {
 	})
 	const [showPassword, setShowPassword] = useState<boolean>(false)
 	const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
-	const [error, setError] = useState<string>("")
 	const navigate = useNavigate()
 	const db = getFirestore()
 
@@ -46,14 +49,23 @@ export default function SignUp() {
 
 	const validateForm = (): boolean => {
 		if (formData.password !== formData.confirmPassword) {
-			setError("Passwords do not match")
+			toast({
+				title: "Error",
+				description: "Passwords do not match",
+				variant: "destructive",
+				duration: 3000,
+			})
 			return false
 		}
 		if (formData.email !== `${formData.computingId}@virginia.edu`) {
-			setError("Email should be in the format computingid@virginia.edu")
+			toast({
+				title: "Error",
+				description: "Email should be in the format <computing_id>@virginia.edu",
+				variant: "destructive",
+				duration: 3000,
+			})
 			return false
 		}
-		setError("")
 		return true
 	}
 
@@ -80,9 +92,24 @@ export default function SignUp() {
 
 			navigate("/login")
 		} catch (error) {
-			setError("Failed to create an account. Please try again.")
-			console.error("Error signing up:", error)
-		}
+      if (error instanceof FirebaseError) {
+        const errorMessage = getFirebaseErrorMessage(error.code)
+        toast({
+          title: "Error",
+          description: errorMessage,
+          variant: "destructive",
+          duration: 3000,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+          duration: 3000,
+        });
+      }
+      console.error("Error signing up:", error);
+    }
 	}
 
 	return (
@@ -188,7 +215,6 @@ export default function SignUp() {
 								</span>
 							</div>
 						</div>
-						{error && <div className="text-destructive text-sm text-center">{error}</div>}
 						<Button type="submit" className="w-full bg-primary text-primary-foreground">
 							Sign Up
 						</Button>
@@ -200,6 +226,7 @@ export default function SignUp() {
 					</Button>
 				</CardFooter>
 			</Card>
+			<Toaster />
 		</div>
 	)
 }

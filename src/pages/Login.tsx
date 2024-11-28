@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { auth } from "../firebase"
@@ -8,6 +8,10 @@ import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { useAuth } from "../auth/useAuth"
 import { FaEye, FaEyeSlash } from "react-icons/fa"
+import { toast } from "../hooks/use-toast"
+import { Toaster } from "../components/ui/toaster"
+import { FirebaseError } from "firebase/app"
+import { getFirebaseErrorMessage } from "../lib/utils"
 
 interface LoginFormData {
 	email: string
@@ -23,7 +27,6 @@ export default function Login() {
 		password: "",
 	})
 	const [showPassword, setShowPassword] = useState<boolean>(false)
-	const [error, setError] = useState<string>("")
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { id, value } = e.target
@@ -37,26 +40,37 @@ export default function Login() {
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
-		setError("")
 
 		try {
 			await signInWithEmailAndPassword(auth, formData.email, formData.password)
 			console.log("User logged in successfully")
 			navigate("/dashboard")
 		} catch (error) {
-			if (error instanceof Error) {
-				setError(error.message)
+			if (error instanceof FirebaseError) {
+				const errorMessage = getFirebaseErrorMessage(error.code)
+				toast({
+					title: "Error",
+					description: errorMessage,
+					variant: "destructive",
+					duration: 3000,
+				})
 			} else {
-				setError("An unexpected error occurred")
+				toast({
+					title: "Error",
+					description: "An unexpected error occurred. Please try again.",
+					variant: "destructive",
+					duration: 3000,
+				})
 			}
 			console.error("Error logging in:", error)
 		}
 	}
 
-	if (user) {
-		navigate("/dashboard")
-		return null
-	}
+	useEffect(() => {
+		if (user) {
+			navigate("/dashboard")
+		}
+	}, [user])
 
 	return (
 		<div className="container mx-auto flex items-center justify-center bg-background text-foreground">
@@ -100,7 +114,6 @@ export default function Login() {
 								</span>
 							</div>
 						</div>
-						{error && <div className="text-destructive text-sm text-center">{error}</div>}
 						<Button type="submit" className="w-full bg-primary text-primary-foreground">
 							Login
 						</Button>
@@ -115,6 +128,7 @@ export default function Login() {
 					</Button>
 				</CardFooter>
 			</Card>
+			<Toaster />
 		</div>
 	)
 }
