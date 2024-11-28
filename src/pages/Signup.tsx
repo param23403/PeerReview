@@ -193,7 +193,7 @@ export default function SignUp() {
 									className="block w-full"
 								/>
 								<span className="absolute inset-y-0 right-3 flex items-center cursor-pointer" onClick={togglePasswordVisibility}>
-									{showPassword ? <FaEyeSlash /> : <FaEye />}
+									{showPassword ? <FaEyeSlash className="text-primary" /> : <FaEye className="text-primary" />}
 								</span>
 							</div>
 						</div>
@@ -212,7 +212,7 @@ export default function SignUp() {
 									className="block w-full"
 								/>
 								<span className="absolute inset-y-0 right-3 flex items-center cursor-pointer" onClick={toggleConfirmPasswordVisibility}>
-									{showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+									{showConfirmPassword ? <FaEyeSlash className="text-primary" /> : <FaEye className="text-primary" />}
 								</span>
 							</div>
 						</div>

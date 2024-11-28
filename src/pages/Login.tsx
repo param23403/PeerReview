@@ -110,7 +110,7 @@ export default function Login() {
 									required
 								/>
 								<span className="absolute inset-y-0 right-3 flex items-center cursor-pointer" onClick={togglePasswordVisibility}>
-									{showPassword ? <FaEyeSlash /> : <FaEye />}
+									{showPassword ? <FaEyeSlash className="text-primary" /> : <FaEye className="text-primary" />}
 								</span>
 							</div>
 						</div>
