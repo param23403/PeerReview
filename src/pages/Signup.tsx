@@ -85,6 +85,7 @@ export default function SignUp() {
 			await setDoc(doc(db, "users", userCredential.user.uid), {
 				firstName: formData.firstName,
 				lastName: formData.lastName,
+				computingId: formData.computingId,
 				email: formData.email,
 				role: "student",
 				createdAt: new Date(),
@@ -92,24 +93,24 @@ export default function SignUp() {
 
 			navigate("/login")
 		} catch (error) {
-      if (error instanceof FirebaseError) {
-        const errorMessage = getFirebaseErrorMessage(error.code)
-        toast({
-          title: "Error",
-          description: errorMessage,
-          variant: "destructive",
-          duration: 3000,
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred. Please try again.",
-          variant: "destructive",
-          duration: 3000,
-        });
-      }
-      console.error("Error signing up:", error);
-    }
+			if (error instanceof FirebaseError) {
+				const errorMessage = getFirebaseErrorMessage(error.code)
+				toast({
+					title: "Error",
+					description: errorMessage,
+					variant: "destructive",
+					duration: 3000,
+				})
+			} else {
+				toast({
+					title: "Error",
+					description: "An unexpected error occurred. Please try again.",
+					variant: "destructive",
+					duration: 3000,
+				})
+			}
+			console.error("Error signing up:", error)
+		}
 	}
 
 	return (
