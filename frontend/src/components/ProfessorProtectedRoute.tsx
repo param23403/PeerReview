@@ -3,11 +3,11 @@ import { useAuth } from "../auth/useAuth";
 import { useEffect } from "react";
 
 const ProtectedRoute = () => {
-  const { user, loading } = useAuth();
+  const { user, userData, loading } = useAuth();
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (!user && !loading) {
+    if (!user && !loading && userData?.role !== "professor") {
       navigate("/login")
     }
   }, [user])

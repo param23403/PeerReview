@@ -12,7 +12,7 @@ import Landing from "./pages/Landing"
 import SignUp from "./pages/Signup"
 import Dashboard from "./pages/Dashboard"
 import { AuthProvider } from "./auth/AuthContext"
-import ProtectedRoute from "./components/ProtectedRoute"
+import StudentProtectedRoute from "./components/StudentProtectedRoute"
 
 const queryClient = new QueryClient();
 
@@ -33,7 +33,7 @@ const router = createBrowserRouter([
 				element: <SignUp />,
 			},
 			{
-				element: <ProtectedRoute />,
+				element: <StudentProtectedRoute />,
 				children: [
 					{
 						path: "/dashboard",
