@@ -63,6 +63,7 @@ export const getFirebaseErrorMessage = (code: string): string => {
 		"auth/uid-already-exists": "The provided uid is already in use by an existing user.",
 		"auth/unauthorized-continue-uri": "The domain of the continue URL is not whitelisted. Add it in the Firebase console.",
 		"auth/user-not-found": "No user record exists for the provided identifier.",
+		"auth/weak-password": "Please enter a stronger password.",
 	}
 
 	return errorMessages[code] || "An unknown error occurred. Please try again."
