@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Menu } from "lucide-react"
-import { Button } from "../components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet"
+import { Button } from "./ui/button"
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet"
 import { NavLink, useNavigate } from "react-router-dom"
 import { useAuth } from "../auth/useAuth"
 import { auth } from "../firebase"
@@ -11,7 +11,7 @@ import { MdOutlineLogout } from "react-icons/md"
 
 const Navbar = () => {
 	const [isOpen, setIsOpen] = React.useState(false)
-	const { user, userData } = useAuth()
+	const { user, userData, loading } = useAuth()
 	const navigate = useNavigate()
 
 	const handleLogout = async () => {
@@ -24,7 +24,7 @@ const Navbar = () => {
 	}
 
 	const navItems = React.useMemo(() => {
-		if (!user) {
+		if (!user && !loading) {
 			return [
 				{
 					name: "Login",
