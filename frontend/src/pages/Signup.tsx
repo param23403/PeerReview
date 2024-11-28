@@ -5,13 +5,14 @@ import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "../components/ui/card"
-import { getFirestore, doc, setDoc } from "firebase/firestore"
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth"
 import { FaEye, FaEyeSlash } from "react-icons/fa"
 import { toast } from "../hooks/use-toast"
 import { Toaster } from "../components/ui/toaster"
 import { FirebaseError } from "firebase/app"
 import { getFirebaseErrorMessage } from "../lib/utils"
+import { useMutation } from "@tanstack/react-query"
+import axios from "axios"
 
 interface SignUpFormData {
 	firstName: string
@@ -34,7 +35,32 @@ export default function SignUp() {
 	const [showPassword, setShowPassword] = useState<boolean>(false)
 	const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
 	const navigate = useNavigate()
-	const db = getFirestore()
+
+	const addUserToFirestore = useMutation({
+		mutationFn: async (userData: { uid: string; firstName: string; lastName: string; computingId: string; email: string }) => {
+			const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/addUser`, userData)
+			return response.data
+		},
+		onSuccess: () => {
+			toast({
+				title: "Success",
+				description: "Account created successfully!",
+				variant: "success",
+				duration: 3000,
+			})
+			navigate("/login")
+		},
+		onError: (error: unknown) => {
+			const errorMessage = axios.isAxiosError(error) && error.response?.data?.message ? error.response.data.message : "Unexpected error occurred."
+			toast({
+				title: "Error",
+				description: errorMessage,
+				variant: "destructive",
+				duration: 3000,
+			})
+			console.error("Error during Firestore update:", error)
+		},
+	})
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { id, value } = e.target
@@ -77,21 +103,19 @@ export default function SignUp() {
 
 		try {
 			const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password)
+			const { uid } = userCredential.user
 
 			await updateProfile(userCredential.user, {
 				displayName: `${formData.firstName} ${formData.lastName}`,
 			})
 
-			await setDoc(doc(db, "users", userCredential.user.uid), {
+			addUserToFirestore.mutate({
+				uid,
 				firstName: formData.firstName,
 				lastName: formData.lastName,
 				computingId: formData.computingId,
 				email: formData.email,
-				role: "student",
-				createdAt: new Date(),
 			})
-
-			navigate("/login")
 		} catch (error) {
 			if (error instanceof FirebaseError) {
 				const errorMessage = getFirebaseErrorMessage(error.code)
@@ -104,12 +128,12 @@ export default function SignUp() {
 			} else {
 				toast({
 					title: "Error",
-					description: "An unexpected error occurred. Please try again.",
+					description: error instanceof Error ? error.message : "Unexpected error occurred.",
 					variant: "destructive",
 					duration: 3000,
 				})
 			}
-			console.error("Error signing up:", error)
+			console.error("Error during sign-up:", error)
 		}
 	}
 
