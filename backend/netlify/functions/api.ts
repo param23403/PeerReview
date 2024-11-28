@@ -2,6 +2,8 @@ import express, { Router } from "express"
 import serverless from "serverless-http"
 import cors from "cors"
 
+import authRouter from "../../src/routes/auth"
+
 const app = express()
 
 app.use(
@@ -16,6 +18,6 @@ app.use(
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-const router = Router()
+app.use("/.netlify/functions/api/auth", authRouter)
 
 export const handler = serverless(app)
