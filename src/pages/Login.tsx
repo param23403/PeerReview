@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { signInWithEmailAndPassword } from "firebase/auth"
+import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth"
 import { auth } from "../firebase"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "../components/ui/card"
@@ -43,7 +43,6 @@ export default function Login() {
 
 		try {
 			await signInWithEmailAndPassword(auth, formData.email, formData.password)
-			console.log("User logged in successfully")
 			navigate("/dashboard")
 		} catch (error) {
 			if (error instanceof FirebaseError) {
@@ -63,6 +62,46 @@ export default function Login() {
 				})
 			}
 			console.error("Error logging in:", error)
+		}
+	}
+
+	const handlePasswordReset = async () => {
+		if (!formData.email) {
+			toast({
+				title: "Error",
+				description: "Please enter your email address to reset your password.",
+				variant: "destructive",
+				duration: 3000,
+			})
+			return
+		}
+
+		try {
+			await sendPasswordResetEmail(auth, formData.email)
+			toast({
+				title: "Success",
+				description: "Password reset email sent. Please check your inbox.",
+				variant: "success",
+				duration: 3000,
+			})
+		} catch (error) {
+			if (error instanceof FirebaseError) {
+				const errorMessage = getFirebaseErrorMessage(error.code)
+				toast({
+					title: "Error",
+					description: errorMessage,
+					variant: "destructive",
+					duration: 3000,
+				})
+			} else {
+				toast({
+					title: "Error",
+					description: "An unexpected error occurred. Please try again.",
+					variant: "destructive",
+					duration: 3000,
+				})
+			}
+			console.error("Error sending password reset email:", error)
 		}
 	}
 
@@ -120,7 +159,7 @@ export default function Login() {
 					</form>
 				</CardContent>
 				<CardFooter className="flex flex-col">
-					<Button type="button" variant="link" className="text-sm text-muted-foreground">
+					<Button type="button" variant="link" onClick={handlePasswordReset} className="text-sm text-muted-foreground">
 						Forgot Password?
 					</Button>
 					<Button variant="link" onClick={() => navigate("/signup")} className="text-sm text-muted-foreground">
