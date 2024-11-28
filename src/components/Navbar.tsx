@@ -1,19 +1,67 @@
 import * as React from "react"
-import { Menu, X } from "lucide-react"
-
+import { Menu } from "lucide-react"
 import { Button } from "../components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet"
-import { NavLink } from "react-router-dom"
+import { NavLink, useNavigate } from "react-router-dom"
+import { useAuth } from "../auth/useAuth"
+import { auth } from "../firebase"
+import { signOut } from "firebase/auth"
+import { MdOutlineLogin } from "react-icons/md"
+import { MdOutlineLogout } from "react-icons/md"
 
-const navItems = [
-	{ name: "Home", href: "/" },
-	{ name: "About", href: "/about" },
-	{ name: "Services", href: "/services" },
-	{ name: "Contact", href: "/contact" },
-]
-
-export default function Navbar() {
+const Navbar = () => {
 	const [isOpen, setIsOpen] = React.useState(false)
+	const { user, userData } = useAuth()
+	const navigate = useNavigate()
+
+	const handleLogout = async () => {
+		try {
+			await signOut(auth)
+			navigate("/")
+		} catch (error) {
+			console.error("Error logging out:", error)
+		}
+	}
+
+	const navItems = React.useMemo(() => {
+		if (!user) {
+			return [
+				{
+					name: "Login",
+					href: "/login",
+					icon: <MdOutlineLogin className="mr-2 h-4 w-4" />,
+					variant: "outline",
+				},
+			]
+		} else if (userData?.role === "student") {
+			return [
+				{ name: "Dashboard", href: "/dashboard" },
+				{ name: "Settings", href: "/settings" },
+				{
+					name: "Logout",
+					href: "/",
+					icon: <MdOutlineLogout className="mr-2 h-4 w-4" />,
+					variant: "outline",
+					action: handleLogout,
+				},
+			]
+		} else if (userData?.role === "professor") {
+			return [
+				{ name: "Teams", href: "/teams" },
+				{ name: "Students", href: "/students" },
+				{ name: "Sprints", href: "/sprints" },
+				{ name: "Settings", href: "/settings" },
+				{
+					name: "Logout",
+					href: "/",
+					icon: <MdOutlineLogout className="mr-2 h-4 w-4" />,
+					variant: "outline",
+					action: handleLogout,
+				},
+			]
+		}
+		return []
+	}, [user, userData, handleLogout])
 
 	return (
 		<nav className="bg-background fixed w-screen top-0">
@@ -25,14 +73,19 @@ export default function Navbar() {
 						</NavLink>
 					</div>
 					<div className="hidden md:block">
-						<div className="ml-10 flex items-baseline space-x-4">
+						<div className="ml-10 flex items-center space-x-4">
 							{navItems.map((item) => (
-								<NavLink
-									key={item.name}
-									to={item.href}
-									className="rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground"
-								>
-									{item.name}
+								<NavLink key={item.name} to={item.href}>
+									{({ isActive }) => (
+										<Button
+											variant={item.variant || "link"}
+											onClick={item.action}
+											className={`flex items-center ${isActive ? "font-bold" : ""}`}
+										>
+											{item.icon}
+											{item.name}
+										</Button>
+									)}
 								</NavLink>
 							))}
 						</div>
@@ -49,13 +102,17 @@ export default function Navbar() {
 								<div className="mt-6 flow-root">
 									<div className="space-y-2 py-6">
 										{navItems.map((item) => (
-											<NavLink
-												key={item.name}
-												to={item.href}
-												className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-foreground hover:bg-accent hover:text-accent-foreground"
-												onClick={() => setIsOpen(false)}
-											>
-												{item.name}
+											<NavLink key={item.name} to={item.href}>
+												{({ isActive }) => (
+													<Button
+														variant={item.variant || "link"}
+														onClick={item.action}
+														className={`flex items-center ${isActive ? "font-bold" : ""}`}
+													>
+														{item.icon}
+														{item.name}
+													</Button>
+												)}
 											</NavLink>
 										))}
 									</div>
@@ -68,3 +125,5 @@ export default function Navbar() {
 		</nav>
 	)
 }
+
+export default Navbar

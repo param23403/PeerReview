@@ -9,7 +9,7 @@ export const getFirebaseErrorMessage = (code: string): string => {
 	const errorMessages: Record<string, string> = {
 		"auth/claims-too-large": "The claims payload provided exceeds the maximum allowed size of 1000 bytes.",
 		"auth/email-already-in-use": "The provided email is already in use by an existing user.",
-    "auth/email-already-exists": "The provided email is already in use by an existing user.",
+		"auth/email-already-exists": "The provided email is already in use by an existing user.",
 		"auth/id-token-expired": "The provided Firebase ID token is expired.",
 		"auth/id-token-revoked": "The Firebase ID token has been revoked.",
 		"auth/insufficient-permission": "The credential used has insufficient permission to access the requested resource. Check your Firebase project setup.",
@@ -18,8 +18,7 @@ export const getFirebaseErrorMessage = (code: string): string => {
 		"auth/invalid-claims": "The custom claim attributes provided are invalid.",
 		"auth/invalid-continue-uri": "The continue URL must be a valid URL string.",
 		"auth/invalid-creation-time": "The creation time must be a valid UTC date string.",
-		"auth/invalid-credential":
-			"The credential provided cannot be used to perform the desired action. Ensure the SDK is initialized with the correct credential.",
+		"auth/invalid-credential": "Incorrect username or password.",
 		"auth/invalid-disabled-field": "The value for the 'disabled' user property is invalid. It must be a boolean.",
 		"auth/invalid-display-name": "The value for the displayName user property is invalid. It must be a non-empty string.",
 		"auth/invalid-dynamic-link-domain": "The provided dynamic link domain is not configured or authorized for the project.",
