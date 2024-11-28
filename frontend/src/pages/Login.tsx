@@ -22,6 +22,12 @@ export default function Login() {
 	const navigate = useNavigate()
 	const { user } = useAuth()
 
+	useEffect(() => {
+		if (user) {
+			navigate("/dashboard")
+		}
+	}, [user])
+
 	const [formData, setFormData] = useState<LoginFormData>({
 		email: "",
 		password: "",
@@ -104,12 +110,6 @@ export default function Login() {
 			console.error("Error sending password reset email:", error)
 		}
 	}
-
-	useEffect(() => {
-		if (user) {
-			navigate("/dashboard")
-		}
-	}, [user])
 
 	return (
 		<div className="container mx-auto flex items-center justify-center bg-background text-foreground">

@@ -11,7 +11,7 @@ import { MdOutlineLogout } from "react-icons/md"
 
 const Navbar = () => {
 	const [isOpen, setIsOpen] = React.useState(false)
-	const { user, userData } = useAuth()
+	const { user, userData, loading } = useAuth()
 	const navigate = useNavigate()
 
 	const handleLogout = async () => {
@@ -24,7 +24,7 @@ const Navbar = () => {
 	}
 
 	const navItems = React.useMemo(() => {
-		if (!user) {
+		if (!user && !loading) {
 			return [
 				{
 					name: "Login",
