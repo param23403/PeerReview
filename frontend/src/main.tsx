@@ -13,6 +13,9 @@ import SignUp from "./pages/Signup"
 import Dashboard from "./pages/Dashboard"
 import { AuthProvider } from "./auth/AuthContext"
 import StudentProtectedRoute from "./components/StudentProtectedRoute"
+import ProfessorProtectedRoute from "./components/ProfessorProtectedRoute"
+import ProfessorDashboard from "./pages/ProfessorDashboard"
+import TeamCreation from "./pages/TeamCreation"
 
 const queryClient = new QueryClient();
 
@@ -38,6 +41,19 @@ const router = createBrowserRouter([
 					{
 						path: "/dashboard",
 						element: <Dashboard />,
+					},
+				],
+			},
+			{
+				element: <ProfessorProtectedRoute />,
+				children: [
+					{
+						path: "/professor-dashboard",
+						element: <ProfessorDashboard />,
+					},
+					{
+						path: "/team-creation",
+						element: <TeamCreation />,
 					},
 				],
 			},
