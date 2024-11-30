@@ -9,7 +9,7 @@ import Layout from "./components/Layout"
 
 import Login from "./pages/Login"
 import Landing from "./pages/Landing"
-import SignUp from "./pages/Signup"
+import SignupStudent from "./pages/Signup"
 import Dashboard from "./pages/Dashboard"
 import { AuthProvider } from "./auth/AuthContext"
 import StudentProtectedRoute from "./components/StudentProtectedRoute"
@@ -29,8 +29,8 @@ const router = createBrowserRouter([
 				element: <Login />,
 			},
 			{
-				path: "/signup",
-				element: <SignUp />,
+				path: "/signup-student",
+				element: <SignupStudent />,
 			},
 			{
 				element: <StudentProtectedRoute />,
