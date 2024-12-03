@@ -46,6 +46,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		enabled: !!user?.uid,
 	})
 
+	useEffect(() => {
+		const deleteUserIfNoData = async () => {
+			if (user && userData === null && !loadingUserData) {
+				try {
+					await user.delete()
+					setUser(null)
+				} catch (error) {
+					console.error("Error deleting user:", error)
+				}
+			}
+		}
+
+		deleteUserIfNoData()
+	}, [user, userData, loadingUserData])
+
 	const loading = loadingAuth || loadingUserData
 
 	return <AuthContext.Provider value={{ user, userData, loading }}>{children}</AuthContext.Provider>
