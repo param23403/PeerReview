@@ -1,135 +1,91 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from "react"
+import { useMutation } from "@tanstack/react-query"
+import axios from "axios"
+import { Input } from "../components/ui/input"
+import { Label } from "../components/ui/label"
+import { Button } from "../components/ui/button"
+import { Card } from "../components/ui/card"
+import { toast } from "../hooks/use-toast"
+import { Toaster } from "../components/ui/toaster"
+import { Loader2 } from "lucide-react"
 
 export default function TeamCreation() {
-  const [data, setData] = useState<string[][]>([]);
-  const [teamAssignments, setTeamAssignments] = useState<{ [key: number]: string }>({});
-  const [teamCount, setTeamCount] = useState<number>(2); 
+	const [file, setFile] = useState<File | null>(null)
+	const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
+	const createTeamsMutation = useMutation({
+		mutationFn: async (file: File) => {
+			const formData = new FormData()
+			formData.append("file", file)
 
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        const parsedData = parseCSV(text);
-        setData(parsedData);
-        setTeamAssignments({});
-      };
+			const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/teams/create`, formData, {
+				headers: { "Content-Type": "multipart/form-data" },
+			})
+			return response.data
+		},
+		onSuccess: () => {
+			toast({
+				title: "Success",
+				description: "Teams created successfully!",
+				variant: "success",
+				duration: 3000,
+			})
+			setFile(null)
+			if (fileInputRef.current) {
+				fileInputRef.current.value = ""
+			}
+		},
+		onError: (error: unknown) => {
+			const errorMessage = axios.isAxiosError(error) && error.response?.data?.message ? error.response.data.message : "Unexpected error occurred."
+			toast({
+				title: "Error",
+				description: errorMessage,
+				variant: "destructive",
+				duration: 3000,
+			})
+		},
+	})
 
-      reader.onerror = () => {
-        console.error("Failed to read the file");
-      };
+	const handleSubmit = (event: React.FormEvent) => {
+		event.preventDefault()
+		if (file) {
+			createTeamsMutation.mutate(file)
+		} else {
+			toast({
+				title: "Error",
+				description: "Please select a CSV file before submitting.",
+				variant: "destructive",
+				duration: 3000,
+			})
+		}
+	}
 
-      reader.readAsText(file);
-    }
-  };
+	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const selectedFile = event.target.files?.[0] || null
+		setFile(selectedFile)
+	}
 
-  const parseCSV = (csvText: string): string[][] => {
-    const rows = csvText.split("\n").map((row) => row.trim());
-    return rows
-      .filter((row) => row.length > 0)
-      .map((row) => row.split(";")); //sample data split by semicolon, not comma
-  };
-
-  const handleTeamChange = (rowIndex: number, team: string) => {
-    setTeamAssignments((prev) => ({
-      ...prev,
-      [rowIndex]: team,
-    }));
-  };
-
-  return (
-    <div className="mt-16 min-h-screen bg-background text-foreground flex flex-col items-center justify-center">
-        <label htmlFor="fileUpload" className="font-bold text-lg">
-            Enter Class Roster
-        </label>
-        <label htmlFor="fileUpload" className="px-4 py-2 mt-2 bg-blue-500 text-white rounded cursor-pointer hover:bg-blue-700">
-            Upload CSV
-        </label>
-
-        <input
-            id="fileUpload"
-            type="file"
-            accept=".csv"
-            onChange={handleFileUpload}
-            className="hidden"
-        />
-      
-        <div className="mt-4">
-            <label htmlFor="teamCount" className="mr-2">Number of Teams:</label>
-            <input
-            type="number"
-            id="teamCount"
-            value={teamCount}
-            onChange={(e) => setTeamCount(Number(e.target.value))}
-            min={1}
-            className="border rounded px-2 py-1"
-            />
-        </div>
-
-        <div className="mt-4">
-            {data.length > 0 ? (
-                <table>
-                <thead>
-                    <tr>
-                    {data[0].map((header, index) => (
-                        <th key={index}>{header}</th>
-                    ))}
-                    <th>Team</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.slice(1).map((row, rowIndex) => (
-                    <tr key={rowIndex}>
-                        {row.map((cell, colIndex) => (
-                        <td key={colIndex}>{cell}</td>
-                        ))}
-                        <td>
-                        <select
-                            value={teamAssignments[rowIndex + 1] || ""}
-                            onChange={(e) => handleTeamChange(rowIndex + 1, e.target.value)}
-                            className="border rounded px-2 py-1"
-                        >
-                            <option value="">Select Team</option>
-                            {Array.from({ length: teamCount }, (_, i) => (
-                            <option key={i} value={`Team ${i + 1}`}>
-                                Team {i + 1}
-                            </option>
-                            ))}
-                        </select>
-                        </td>
-                    </tr>
-                    ))}
-                </tbody>
-                </table>
-            ) : (
-                <p>No data loaded</p>
-            )}
-        </div>
-
-
-      <div className="mt-8">
-        {Object.keys(teamAssignments).length > 0 && (
-          <div>
-            <h2 className='font-bold'>Team Assignments</h2>
-            {Array.from({ length: teamCount }, (_, i) => (
-              <div key={i} className="mt-4">
-                <h3>Team {i + 1}</h3>
-                <ul>
-                  {Object.entries(teamAssignments)
-                    .filter(([, team]) => team === `Team ${i + 1}`)
-                    .map(([rowIndex]) => (
-                      <li key={rowIndex}>
-                        {data[+rowIndex].join(", ")}
-                      </li>
-                    ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+	return (
+		<div className="bg-background text-foreground flex flex-col items-center py-12">
+			<Card className="w-full max-w-2xl p-6">
+				<Label htmlFor="fileUpload" className="block text-lg font-semibold mb-4">
+					Upload Team Assignments CSV
+				</Label>
+				<form onSubmit={handleSubmit}>
+					<Input id="fileUpload" type="file" accept=".csv" onChange={handleFileChange} className="mb-4" ref={fileInputRef} />
+					<Button type="submit" disabled={createTeamsMutation.isPending || !file}>
+						{createTeamsMutation.isPending ? (
+							<>
+								<Loader2 className="animate-spin mr-2" />
+								Creating Teams...
+							</>
+						) : (
+							"Create Teams"
+						)}
+					</Button>
+				</form>
+			</Card>
+			<Toaster />
+		</div>
+	)
 }
