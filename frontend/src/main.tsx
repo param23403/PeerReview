@@ -11,6 +11,7 @@ import Login from "./pages/Login"
 import Landing from "./pages/Landing"
 import SignupStudent from "./pages/Signup"
 import Dashboard from "./pages/Dashboard"
+import StudentSprints from "./pages/StudentSprints"
 import { AuthProvider } from "./auth/AuthContext"
 import StudentProtectedRoute from "./components/StudentProtectedRoute"
 
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
 					{
 						path: "/dashboard",
 						element: <Dashboard />,
+					},
+					{
+						path: "/sprints",
+						element: <StudentSprints />,
 					},
 				],
 			},
