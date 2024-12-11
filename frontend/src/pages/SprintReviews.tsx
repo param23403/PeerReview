@@ -47,7 +47,7 @@ export default function SprintReviews() {
                       <XCircle className="text-red-500 mr-2" />
                     )}
                     <span className="mr-2">
-                      {student.reviewCompleted ? 'Complete' : 'Incomplete'}
+                      {student.reviewCompleted ? 'Submitted' : 'Incomplete'}
                     </span>
                     <ChevronRight className="text-gray-400" />
                   </div>
