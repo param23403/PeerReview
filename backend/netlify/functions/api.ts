@@ -5,7 +5,7 @@ import cors from "cors"
 
 import authRouter from "../../src/routes/auth"
 import sprintRouter from "../../src/routes/sprints"
-import teamsRouter from "../../src/routes/teams"
+import teamRouter from "../../src/routes/teams"
 
 const app = express()
 
@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use("/api/auth", authRouter)
 app.use("/api/sprints", sprintRouter)
-app.use("/api/sprints", teamsRouter)
+app.use("/api/teams", teamRouter)
 
 export const handler = serverless(app)
 
