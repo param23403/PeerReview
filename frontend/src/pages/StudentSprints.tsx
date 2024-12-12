@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "../components/ui/card";
 import { CheckCircle, XCircle, ChevronRight, Lock } from "lucide-react";
+import { API_BASE_URL } from "../constants";
 
 interface Sprint {
   id: string;
@@ -16,7 +17,7 @@ interface Sprint {
 const getSprintStatus = (sprint: Sprint) => {
   const currentDate = new Date();
   const isPastSprintDueDate = currentDate > sprint.sprintDueDate;
-  const isReviewOpen = isPastSprintDueDate && currentDate <= new Date(sprint.sprintDueDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const isReviewOpen = isPastSprintDueDate && currentDate <= sprint.reviewDueDate;
 
   return { isPastSprintDueDate, isReviewOpen };
 };
@@ -83,7 +84,7 @@ export default function StudentSprints() {
   useEffect(() => {
     const fetchSprints = async () => {
       try {
-        const response = await fetch("http://localhost:8888/.netlify/functions/api/sprints/getSprints");
+        const response = await fetch(`${API_BASE_URL}/sprints/getSprints`);
         if (!response.ok) {
           throw new Error("Failed to fetch sprints");
         }
