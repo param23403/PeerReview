@@ -1,4 +1,5 @@
-import express, { Router } from "express"
+import "dotenv/config"
+import express from "express"
 import serverless from "serverless-http"
 import cors from "cors"
 
@@ -19,7 +20,15 @@ app.use(
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.use("/.netlify/functions/api/auth", authRouter)
-app.use("/.netlify/functions/api/sprints", sprintRouter);
+
+app.use("/api/auth", authRouter)
+app.use("/api/sprints", sprintRouter);
 
 export const handler = serverless(app)
+
+if (process.env.NODE_ENV !== "production") {
+	const PORT = process.env.PORT || 8888
+	app.listen(PORT, () => {
+		console.log(`Local server running at http://localhost:${PORT}`)
+	})
+}
