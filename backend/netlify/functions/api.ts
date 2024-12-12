@@ -4,6 +4,7 @@ import serverless from "serverless-http"
 import cors from "cors"
 
 import authRouter from "../../src/routes/auth"
+import sprintRouter from "../../src/routes/sprints"
 
 const app = express()
 
@@ -19,7 +20,9 @@ app.use(
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+
 app.use("/api/auth", authRouter)
+app.use("/api/sprints", sprintRouter);
 
 export const handler = serverless(app)
 
