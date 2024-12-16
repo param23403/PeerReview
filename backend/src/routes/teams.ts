@@ -2,7 +2,7 @@ import express, { Request, Response } from "express"
 import multer from "multer"
 import csvParser from "csv-parser"
 import { Readable } from "stream"
-import { db } from "../../netlify/functions/firebase";
+import { db } from "../../netlify/functions/firebase"
 
 const router = express.Router()
 const upload = multer()
@@ -11,12 +11,12 @@ const saveTeams = async (students: any[]) => {
     try {
     	const batch = db.batch()
 
-        const teamsMap = students.reduce((acc, student) => {
-            if (!acc[student.team]) {
-                acc[student.team] = [];
+        const teamsMap = students.reduce((teams, student) => {
+            if (!teams[student.team]) {
+                teams[student.team] = [];
             }
-            acc[student.team].push(student);
-            return acc;
+            teams[student.team].push(student);
+            return teams;
         }, {});
 
         Object.keys(teamsMap).forEach((teamID) => {
@@ -32,24 +32,31 @@ const saveTeams = async (students: any[]) => {
 }
 
 const createTeams = async (req: Request, res: Response): Promise<void> => {
-	if (!req.file) {
-		res.status(400).json({ message: "No file uploaded" })
-		return
-	}
+    console.log("Received request to /teams/create");
 
-	//Parse CSV
-	try {
-        const fileStream = new Readable()
-        fileStream.push(req.file.buffer)
-        fileStream.push(null) 
+    // Log if no file is uploaded
+    if (!req.file) {
+        console.error("No file uploaded");
+        res.status(400).json({ message: "No file uploaded" });
+        return;
+    }
 
-        const students: any[] = []
+    console.log("File received:", req.file.originalname);
+
+    // Parse CSV
+    try {
+        const fileStream = new Readable();
+        fileStream.push(req.file.buffer);
+        fileStream.push(null);
+
+        const students: any[] = [];
 
         fileStream
             .pipe(csvParser())
             .on("data", (data) => {
-				students.push({
-                    team: data["Team"],
+                console.log("Parsing row:", data); // Log each row for debugging
+                students.push({
+                    team: data["Team"].split(' ').join('').split('-').join(''),
                     computingID: data["Computing ID"],
                     lastName: data["Last Name"],
                     firstName: data["First Name"],
@@ -57,22 +64,28 @@ const createTeams = async (req: Request, res: Response): Promise<void> => {
                     githubID: data["GitHub ID"],
                     discordID: data["Discord ID"],
                 });
-			})
+            })
             .on("end", async () => {
-                console.log("Parsed CSV data:", students)
+                console.log("Parsed CSV data:", students);
 
-				await saveTeams(students);
-                res.status(201).json({ message: "Teams successfully created" });
+                try {
+                    await saveTeams(students);
+                    console.log("Teams successfully saved");
+                    res.status(201).json({ message: "Teams successfully created" });
+                } catch (saveError) {
+                    console.error("Error saving teams to Firebase:", saveError);
+                    res.status(500).json({ message: "Failed to save teams to Firebase" });
+                }
             })
-            .on("error", (err) => {
-                console.error("Error parsing CSV:", err)
-                res.status(500).json({ message: "Failed to parse file" })
-            })
+            .on("error", (parseError) => {
+                console.error("Error parsing CSV:", parseError);
+                res.status(500).json({ message: "Failed to parse file" });
+            });
     } catch (error) {
-        console.error("Error occurred. Please try again.", error)
-        res.status(500).json({ message: "Error parsing or saving file to firebase. Please try again." })
+        console.error("Unexpected error during file processing:", error);
+        res.status(500).json({ message: "Unexpected error occurred. Please try again." });
     }
-}
+};
 
 const getTeams = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -117,7 +130,7 @@ const getTeam = async (req: Request, res: Response): Promise<void> => {
     }
 }
 
-router.post("/createTeams", upload.single("file"), createTeams)
+router.post("/create", upload.single("file"), createTeams)
 router.get("/getTeams", getTeams)
 router.get("/getTeam/:teamID", getTeam)
 
