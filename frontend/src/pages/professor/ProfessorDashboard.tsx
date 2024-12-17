@@ -1,10 +1,10 @@
-import { Button } from "../components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Button } from "../../components/ui/button";
+import { To, useNavigate } from "react-router-dom";
 
 export default function ProfessorDashboard() {
   const navigate = useNavigate();
 
-  const handleNavigation = (path) => {
+  const handleNavigation = (path: To) => {
     navigate(path);
   };
 

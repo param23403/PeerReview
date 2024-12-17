@@ -1,18 +1,18 @@
-import { Outlet, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth/useAuth";
-import { useEffect } from "react";
+import { Outlet, useNavigate } from "react-router-dom"
+import { useAuth } from "../auth/useAuth"
+import { useEffect } from "react"
 
 const ProtectedRoute = () => {
-  const { user, userData, loading } = useAuth();
-  const navigate = useNavigate()
+	const { user, userData, loading } = useAuth()
+	const navigate = useNavigate()
 
-  useEffect(() => {
-    if (!user && !loading && userData?.role !== "professor") {
-      navigate("/login")
-    }
-  }, [user])
+	useEffect(() => {
+		if (!loading && (!user || userData?.role !== "professor")) {
+			navigate("/login")
+		}
+	}, [user])
 
-  return <Outlet />;
-};
+	return <Outlet />
+}
 
-export default ProtectedRoute;
+export default ProtectedRoute

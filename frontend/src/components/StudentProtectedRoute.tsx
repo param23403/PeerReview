@@ -7,10 +7,10 @@ const StudentProtectedRoute = () => {
 	const navigate = useNavigate()
 
 	useEffect(() => {
-		if (!user && !loading && userData?.role !== "student") {
+		if (!loading && (!user || userData?.role !== "student")) {
 			navigate("/login")
 		}
-	}, [user])
+	}, [user, userData])
 
 	return <Outlet />
 }

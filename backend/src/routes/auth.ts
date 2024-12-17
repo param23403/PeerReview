@@ -3,6 +3,15 @@ import { db } from "../../netlify/functions/firebase"
 
 const router = express.Router()
 
+const getStudentByComputingId = async (computingId: string) => {
+	const snapshot = await db.collection("students").where("computingId", "==", computingId).limit(1).get()
+
+	if (snapshot.empty) return null
+
+	const studentDoc = snapshot.docs[0]
+	return { id: studentDoc.id, ...studentDoc.data() }
+}
+
 const getUserData = async (req: Request, res: Response): Promise<void> => {
 	const { uid } = req.params
 
@@ -28,22 +37,32 @@ const getUserData = async (req: Request, res: Response): Promise<void> => {
 }
 
 const addUserToFirestore = async (req: Request, res: Response): Promise<void> => {
-	const { uid, firstName, lastName, computingId, email } = req.body
+	const { uid, computingId, email } = req.body
 
-	if (!uid || !firstName || !lastName || !computingId || !email) {
-		res.status(400).json({ message: "Missing required fields" })
+	if (!uid || !computingId || !email) {
+		res.status(400).json({ message: "Missing required fields: uid, computingId, email" })
 		return
 	}
 
 	try {
+		const studentData = await getStudentByComputingId(computingId)
+
+		if (!studentData) {
+			res.status(404).json({ message: "Invalid computingId. No matching student found." })
+			return
+		}
+
 		const userDocRef = db.doc(`users/${uid}`)
 		await userDocRef.set({
-			firstName,
-			lastName,
-			computingId,
+			studentId: studentData.id,
 			email,
 			role: "student",
 			createdAt: new Date(),
+		})
+
+		await db.doc(`students/${studentData.id}`).update({
+			joinedAt: new Date(),
+			active: true,
 		})
 
 		res.status(201).json({ message: "User data successfully added to Firestore" })

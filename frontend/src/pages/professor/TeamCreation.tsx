@@ -1,12 +1,12 @@
 import React, { useState, useRef } from "react"
 import { useMutation } from "@tanstack/react-query"
 import axios from "axios"
-import { Input } from "../components/ui/input"
-import { Label } from "../components/ui/label"
-import { Button } from "../components/ui/button"
-import { Card } from "../components/ui/card"
-import { toast } from "../hooks/use-toast"
-import { Toaster } from "../components/ui/toaster"
+import { Input } from "../../components/ui/input"
+import { Label } from "../../components/ui/label"
+import { Button } from "../../components/ui/button"
+import { Card } from "../../components/ui/card"
+import { toast } from "../../hooks/use-toast"
+import { Toaster } from "../../components/ui/toaster"
 import { Loader2 } from "lucide-react"
 
 export default function TeamCreation() {

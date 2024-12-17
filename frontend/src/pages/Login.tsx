@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth"
+import { signInWithEmailAndPassword, sendPasswordResetEmail, signOut } from "firebase/auth"
 import { auth } from "../firebase"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "../components/ui/card"
@@ -20,11 +20,14 @@ interface LoginFormData {
 
 export default function Login() {
 	const navigate = useNavigate()
-	const { user } = useAuth()
+	const { user, userData, loading } = useAuth()
 
 	useEffect(() => {
-		if (user) {
+		if (!loading && user && userData?.role === "student") {
 			navigate("/dashboard")
+		}
+		if (!loading && user && userData?.role === "professor") {
+			navigate("/teams")
 		}
 	}, [user])
 
@@ -111,6 +114,15 @@ export default function Login() {
 		}
 	}
 
+	const handleLogout = async () => {
+		try {
+			await signOut(auth)
+			navigate("/")
+		} catch (error) {
+			console.error("Error logging out:", error)
+		}
+	}
+
 	return (
 		<div className="container mx-auto flex items-center justify-center bg-background text-foreground">
 			<Card className="w-full max-w-lg shadow-md border border-muted">
@@ -168,6 +180,7 @@ export default function Login() {
 				</CardFooter>
 			</Card>
 			<Toaster />
+			<Button onClick={() => handleLogout()}>here</Button>
 		</div>
 	)
 }
