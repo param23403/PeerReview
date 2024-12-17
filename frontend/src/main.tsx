@@ -17,8 +17,9 @@ import StudentProtectedRoute from "./components/StudentProtectedRoute"
 import ProfessorProtectedRoute from "./components/ProfessorProtectedRoute"
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard"
 import TeamCreation from "./pages/professor/TeamCreation"
+import Students from "./pages/professor/Students"
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient()
 
 const router = createBrowserRouter([
 	{
@@ -59,6 +60,10 @@ const router = createBrowserRouter([
 					{
 						path: "/team-creation",
 						element: <TeamCreation />,
+					},
+					{
+						path: "/students",
+						element: <Students />,
 					},
 				],
 			},
