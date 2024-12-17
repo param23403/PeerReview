@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Card, CardContent } from "../components/ui/card";
+import { Card, CardContent } from "../../components/ui/card";
 import { CheckCircle, XCircle, ChevronRight, Lock } from "lucide-react";
-import { API_BASE_URL } from "../constants";
+import { API_BASE_URL } from "../../constants";
 
 interface Sprint {
   id: string;

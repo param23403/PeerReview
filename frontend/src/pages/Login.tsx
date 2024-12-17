@@ -20,11 +20,14 @@ interface LoginFormData {
 
 export default function Login() {
 	const navigate = useNavigate()
-	const { user } = useAuth()
+	const { user, userData, loading } = useAuth()
 
 	useEffect(() => {
-		if (user) {
+		if (!loading && user && userData?.role === "student") {
 			navigate("/dashboard")
+		}
+		if (!loading && user && userData?.role === "professor") {
+			navigate("/teams")
 		}
 	}, [user])
 

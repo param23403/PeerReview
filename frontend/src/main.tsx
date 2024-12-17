@@ -10,13 +10,13 @@ import Layout from "./components/Layout"
 import Login from "./pages/Login"
 import Landing from "./pages/Landing"
 import SignupStudent from "./pages/Signup"
-import Dashboard from "./pages/Dashboard"
-import StudentSprints from "./pages/StudentSprints"
+import Dashboard from "./pages/student/Dashboard"
+import StudentSprints from "./pages/student/StudentSprints"
 import { AuthProvider } from "./auth/AuthContext"
 import StudentProtectedRoute from "./components/StudentProtectedRoute"
 import ProfessorProtectedRoute from "./components/ProfessorProtectedRoute"
-import ProfessorDashboard from "./pages/ProfessorDashboard"
-import TeamCreation from "./pages/TeamCreation"
+import ProfessorDashboard from "./pages/professor/ProfessorDashboard"
+import TeamCreation from "./pages/professor/TeamCreation"
 
 const queryClient = new QueryClient();
 
