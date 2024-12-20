@@ -5,7 +5,7 @@ import { Input } from "../../components/ui/input"
 import StudentCard from "../../components/StudentCard"
 import Spinner from "../../components/Spinner"
 
-const fetchStudents = async ({ queryKey, pageParam = 1 }) => {
+const fetchStudents = async ({ queryKey, pageParam = 1 }: { queryKey: any; pageParam?: number }) => {
 	const [_key, searchTerm] = queryKey
 	const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/students/search`, { params: { search: searchTerm, page: pageParam, limit: 20 } })
 	return response.data
@@ -55,7 +55,7 @@ const Students = () => {
 			<div className="mb-6">
 				<Input
 					type="text"
-					placeholder="Search for students..."
+					placeholder="Search by name or computing ID..."
 					value={searchTerm}
 					onChange={(e: { target: { value: React.SetStateAction<string> } }) => setSearchTerm(e.target.value)}
 					className="w-full p-2 border border-gray-300 rounded-md"
