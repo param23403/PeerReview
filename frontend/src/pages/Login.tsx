@@ -165,7 +165,7 @@ export default function Login() {
 					<Button type="button" variant="link" onClick={handlePasswordReset} className="text-sm text-muted-foreground">
 						Forgot Password?
 					</Button>
-					<Button variant="link" onClick={() => navigate("/signup")} className="text-sm text-muted-foreground">
+					<Button variant="link" onClick={() => navigate("/signup-student")} className="text-sm text-muted-foreground">
 						Don't have an account? Signup.
 					</Button>
 				</CardFooter>
