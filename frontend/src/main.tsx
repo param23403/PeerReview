@@ -18,6 +18,8 @@ import ProfessorProtectedRoute from "./components/ProfessorProtectedRoute"
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard"
 import TeamCreation from "./pages/professor/TeamCreation"
 import Students from "./pages/professor/Students"
+import Teams from "./pages/professor/Teams"
+import TeamPage from "./pages/professor/TeamPage"
 
 const queryClient = new QueryClient()
 
@@ -64,6 +66,14 @@ const router = createBrowserRouter([
 					{
 						path: "/students",
 						element: <Students />,
+					},
+					{
+						path: "/teams",
+						element: <Teams />,
+					},
+					{
+						path: "/teams/:teamId",
+						element: <TeamPage />,
 					},
 				],
 			},
