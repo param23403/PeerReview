@@ -32,14 +32,13 @@ const StudentCard: React.FC<StudentCardProps> = ({ name, computingId, team, gith
 						<CardTitle className="text-lg font-bold">{name || "N/A"}</CardTitle>
 						<Separator orientation="vertical" className="h-5" />
 						<p className="text-sm text-muted-foreground">{computingId || "No Computing ID"}</p>
+						<Separator orientation="vertical" className="h-5" />
+						<p className="text-sm text-muted-foreground">Team: {team || "Unassigned"}</p>
 					</div>
 				</div>
-				<p className="text-sm font-medium text-primary">Team: {team || "Unassigned"}</p>
 			</CardHeader>
 
-			<CardContent className="flex justify-between items-end p-0 mt-4">
-				<p className="text-sm text-muted-foreground">{active ? "Joined PeerReview App" : "Not Yet Joined"}</p>
-
+			<CardContent className="p-0">
 				<div className="flex items-center text-sm text-muted-foreground space-x-4">
 					<div className="flex items-center">
 						<span className="text-muted-foreground mr-1">GitHub:</span>
@@ -51,6 +50,7 @@ const StudentCard: React.FC<StudentCardProps> = ({ name, computingId, team, gith
 						<span className="font-medium">{discordId || "N/A"}</span>
 					</div>
 				</div>
+				<p className="mt-2 text-sm text-muted-foreground">{active ? "Joined PeerReview App" : "Not Yet Joined"}</p>
 			</CardContent>
 		</Card>
 	)
