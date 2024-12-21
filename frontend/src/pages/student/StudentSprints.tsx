@@ -1,12 +1,12 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "../../components/ui/card";
 import { CheckCircle, XCircle, ChevronRight, Lock } from "lucide-react";
 import { API_BASE_URL } from "../../constants";
+import { AuthContext } from "../../auth/AuthContext";
 
 interface Sprint {
   id: string;
-  sprintNumber: number;
   name: string;
   sprintDueDate: Date;
   reviewDueDate: Date;
@@ -57,7 +57,7 @@ function SprintCard({ sprint, isPastSprintDueDate, isReviewOpen }: { sprint: Spr
     <Card>
       <CardContent className="p-4 flex justify-between items-center">
         <div className="flex-grow">
-          <h2 className="text-lg font-semibold">Sprint {sprint.sprintNumber}: {sprint.name}</h2>
+          <h2 className="text-lg font-semibold">Sprint {sprint.id}: {sprint.name}</h2>
           <p className="text-sm text-gray-500">{statusLabel()}</p>
         </div>
         <div className="flex items-center space-x-4">
@@ -77,29 +77,33 @@ function SprintCard({ sprint, isPastSprintDueDate, isReviewOpen }: { sprint: Spr
 }
 
 export default function StudentSprints() {
+  const { userData, loading: authLoading } = useContext(AuthContext);
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSprints = async () => {
+      if (!userData?.computingId) return;
+
       try {
-        const response = await fetch(`${API_BASE_URL}/sprints/getSprints`);
+        const response = await fetch(
+          `${API_BASE_URL}/sprints/getStudentSprints/${userData.computingId}`
+        );
+
         if (!response.ok) {
           throw new Error("Failed to fetch sprints");
         }
-        const data = await response.json();
+
+        const sprintsData = await response.json();
+
         setSprints(
-          data.map((sprint: any) => ({
+          sprintsData.map((sprint: any) => ({
             ...sprint,
             sprintDueDate: new Date(sprint.sprintDueDate._seconds * 1000),
             reviewDueDate: new Date(sprint.reviewDueDate._seconds * 1000),
-
-            // TODO: Replace with actual number of completed reviews by student for specific sprint
-            completedReviews: Math.floor(Math.random() * (7)),
-            totalReviews: 6
           }))
-        );        
+        );
       } catch (err: any) {
         console.error("Error:", err);
         setError("Failed to load sprints. Please retry.");
@@ -107,8 +111,11 @@ export default function StudentSprints() {
         setLoading(false);
       }
     };
-    fetchSprints();
-  }, []);
+  
+    if (!authLoading) {
+      fetchSprints();
+    }
+  }, [userData, authLoading]);
 
   if (loading) {
     return <p>Loading sprints...</p>;
@@ -132,7 +139,7 @@ export default function StudentSprints() {
                 state={{ sprint }}
                 key={sprint.id}
                 className="block transition-shadow duration-200 hover:shadow-lg"
-                aria-label={`View details for Sprint ${sprint.sprintNumber}`}
+                aria-label={`View details for Sprint ${sprint.id}`}
               >
                 <SprintCard sprint={sprint} isPastSprintDueDate={isPastSprintDueDate} isReviewOpen={isReviewOpen} />
               </Link>

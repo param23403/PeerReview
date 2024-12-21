@@ -38,15 +38,15 @@ const router = createBrowserRouter([
 				element: <SignupStudent />,
 			},
 			{
+				path: "/sprints",
+				element: <StudentSprints />,
+			},
+			{
 				element: <StudentProtectedRoute />,
 				children: [
 					{
 						path: "/dashboard",
 						element: <Dashboard />,
-					},
-					{
-						path: "/sprints",
-						element: <StudentSprints />,
 					},
 				],
 			},

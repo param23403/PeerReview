@@ -4,8 +4,9 @@ import serverless from "serverless-http"
 import cors from "cors"
 
 import authRouter from "../../src/routes/auth"
-import sprintRouter from "../../src/routes/sprints"
+import reviewsRouter from "../../src/routes/reviews"
 import teamRouter from "../../src/routes/teams"
+import sprintRouter from "../../src/routes/sprints"
 import studentRouter from "../../src/routes/students"
 
 const app = express()
@@ -23,9 +24,10 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use("/api/auth", authRouter)
+app.use("/api/reviews", reviewsRouter)
 app.use("/api/sprints", sprintRouter)
-app.use("/api/teams", teamRouter)
 app.use("/api/students", studentRouter)
+app.use("/api/teams", teamRouter)
 
 export const handler = serverless(app)
 
