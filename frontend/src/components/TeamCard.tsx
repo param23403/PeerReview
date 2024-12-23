@@ -34,7 +34,7 @@ const TeamCard: React.FC<TeamCardProps> = ({ teamName, students, loading }) => {
             <div key={student.computingId} className="flex items-center text-sm text-muted-foreground space-x-4">
               <div className="flex items-center">
                 <span className="text-muted-foreground mr-1">Name:</span>
-                <span className="font-medium">{student.name || "N/A"}</span>
+                <span className="font-medium">{student.firstName} {student.lastName}</span>
               </div>
               <Separator orientation="vertical" className="h-4" />
               <div className="flex items-center">
