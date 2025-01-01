@@ -76,6 +76,8 @@ const router = createBrowserRouter([
 					{
 						path: "/teams/:teamId",
 						element: <TeamPage />,
+					},
+					{
 						path: "/add-students",
 						element: <AddStudents />,
 					},

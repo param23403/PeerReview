@@ -83,7 +83,7 @@ const addStudent = async (req: Request, res: Response): Promise<void> => {
             computingID,
 			team,
 			joinedAt: new Date().toISOString(),
-            active: true,
+            active: false,
             githubID,
             discordID,
             preferredPronouns,
@@ -99,5 +99,5 @@ const addStudent = async (req: Request, res: Response): Promise<void> => {
 router.post("/add", addStudent)
 router.get("/search", searchStudents)
 router.get("/getStudent/:studentID", getStudent)
-
+ 
 export default router
