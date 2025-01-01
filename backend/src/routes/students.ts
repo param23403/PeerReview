@@ -65,6 +65,38 @@ const getStudent = async (req: Request, res: Response): Promise<void> => {
 	}
 }
 
+const addStudent = async (req: Request, res: Response): Promise<void> => {
+    const { team, firstName, lastName, computingID, preferredPronouns, githubID, discordID } = req.body;
+
+    console.log("Received student data:", req.body);
+
+    try {
+        const studentsRef = db.collection("students");
+        const snapshot = await studentsRef.get();
+        const studentCount = snapshot.size; 
+        
+        const newStudentID = studentCount; 
+
+        await studentsRef.doc(newStudentID.toString()).set({
+			id: computingID,
+            name: `${firstName} ${lastName}`,
+            computingID,
+			team,
+			joinedAt: new Date().toISOString(),
+            active: true,
+            githubID,
+            discordID,
+            preferredPronouns,
+        });
+
+        res.status(201).json({ message: "Student added successfully" });
+    } catch (error) {
+        console.error("Error adding student:", error);
+        res.status(500).json({ message: "Failed to add student" });
+    }
+}
+
+router.post("/add", addStudent)
 router.get("/search", searchStudents)
 router.get("/getStudent/:studentID", getStudent)
 
