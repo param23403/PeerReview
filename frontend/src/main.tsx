@@ -18,6 +18,8 @@ import ProfessorProtectedRoute from "./components/ProfessorProtectedRoute"
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard"
 import TeamCreation from "./pages/professor/TeamCreation"
 import Students from "./pages/professor/Students"
+import Teams from "./pages/professor/Teams"
+import TeamPage from "./pages/professor/TeamPage"
 import AddStudents from "./pages/professor/AddStudents"
 import RemoveStudents from "./pages/professor/RemoveStudents"
 
@@ -68,6 +70,12 @@ const router = createBrowserRouter([
 						element: <Students />,
 					},
 					{
+						path: "/teams",
+						element: <Teams />,
+					},
+					{
+						path: "/teams/:teamId",
+						element: <TeamPage />,
 						path: "/add-students",
 						element: <AddStudents />,
 					},
