@@ -1,5 +1,5 @@
-import { Button } from "../../components/ui/button";
-import { To, useNavigate } from "react-router-dom";
+import { Button } from "../../components/ui/button"
+import { To, useNavigate } from "react-router-dom"
 
 export default function ProfessorDashboard() {
   const navigate = useNavigate();
@@ -22,7 +22,7 @@ export default function ProfessorDashboard() {
       <section className="py-8 px-4">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-center gap-8">
           <Button onClick={() => handleNavigation("/team-creation")}>
-            Create Teams
+            Make Teams
           </Button>
           <Button onClick={() => handleNavigation("/students")}>
             View Students

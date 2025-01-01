@@ -18,6 +18,8 @@ import ProfessorProtectedRoute from "./components/ProfessorProtectedRoute"
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard"
 import TeamCreation from "./pages/professor/TeamCreation"
 import Students from "./pages/professor/Students"
+import AddStudents from "./pages/professor/AddStudents"
+import RemoveStudents from "./pages/professor/RemoveStudents"
 
 const queryClient = new QueryClient()
 
@@ -64,6 +66,14 @@ const router = createBrowserRouter([
 					{
 						path: "/students",
 						element: <Students />,
+					},
+					{
+						path: "/add-students",
+						element: <AddStudents />,
+					},
+					{
+						path: "/remove-students",
+						element: <RemoveStudents />,
 					},
 				],
 			},

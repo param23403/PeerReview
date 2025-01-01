@@ -7,6 +7,7 @@ import { Button } from "../../components/ui/button"
 import { Card } from "../../components/ui/card"
 import { toast } from "../../hooks/use-toast"
 import { Toaster } from "../../components/ui/toaster"
+import { To, useNavigate } from "react-router-dom"
 import { Loader2 } from "lucide-react"
 
 export default function TeamCreation() {
@@ -45,6 +46,12 @@ export default function TeamCreation() {
 			})
 		},
 	})
+
+	const navigate = useNavigate();
+	
+	  const handleNavigation = (path: To) => {
+		navigate(path);
+	};
 
 	const handleSubmit = (event: React.FormEvent) => {
 		event.preventDefault()
@@ -85,6 +92,14 @@ export default function TeamCreation() {
 					</Button>
 				</form>
 			</Card>
+			<div className="mt-20 space-x-20">
+				<Button onClick={() => handleNavigation("/add-students")}>
+					Add Students
+				</Button>
+				<Button onClick={() => handleNavigation("/remove-students")}>
+					Remove Students
+				</Button>
+			</div>
 			<Toaster />
 		</div>
 	)
