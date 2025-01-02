@@ -102,7 +102,7 @@ export default function AddStudents() {
 					<Input name="discordID" placeholder="Discord ID" value={formData.discordID} onChange={handleChange} className="mb-4" />
 					<div className="flex justify-center items-center h-full">
 						<Button type="submit" className="ce">
-							Add Student
+							Save
 						</Button>
 					</div>
 				</form>
