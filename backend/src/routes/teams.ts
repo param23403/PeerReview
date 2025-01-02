@@ -47,15 +47,11 @@ const saveTeamsAndStudents = async (students: any[]) => {
 }
 
 const createTeams = async (req: Request, res: Response): Promise<void> => {
-	console.log("Received request to /teams/create")
-
 	if (!req.file) {
 		console.error("No file uploaded")
 		res.status(400).json({ message: "No file uploaded" })
 		return
 	}
-
-	console.log("File received:", req.file.originalname)
 
 	try {
 		const fileStream = new Readable()

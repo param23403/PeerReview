@@ -22,7 +22,7 @@ export default function ProfessorDashboard() {
       <section className="py-8 px-4">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-center gap-8">
           <Button onClick={() => handleNavigation("/team-creation")}>
-            Create Teams
+            Make Teams
           </Button>
           <Button onClick={() => handleNavigation("/students")}>
             View Students

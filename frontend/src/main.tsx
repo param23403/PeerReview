@@ -20,6 +20,7 @@ import TeamCreation from "./pages/professor/TeamCreation"
 import Students from "./pages/professor/Students"
 import Teams from "./pages/professor/Teams"
 import TeamPage from "./pages/professor/TeamPage"
+import ManageStudents from "./pages/professor/ManageStudents"
 
 const queryClient = new QueryClient()
 
@@ -74,6 +75,10 @@ const router = createBrowserRouter([
 					{
 						path: "/teams/:teamId",
 						element: <TeamPage />,
+					},
+					{
+						path: "/manage-students",
+						element: <ManageStudents />,
 					},
 				],
 			},
