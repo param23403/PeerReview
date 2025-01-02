@@ -47,11 +47,11 @@ export default function TeamCreation() {
 		},
 	})
 
-	const navigate = useNavigate();
+	const navigate = useNavigate()
 	
-	  const handleNavigation = (path: To) => {
-		navigate(path);
-	};
+	  const handleNavigation = (path: To, action: string) => {
+		navigate(path, {state: { action }})
+	}
 
 	const handleSubmit = (event: React.FormEvent) => {
 		event.preventDefault()
@@ -93,10 +93,10 @@ export default function TeamCreation() {
 				</form>
 			</Card>
 			<div className="mt-20 space-x-20">
-				<Button onClick={() => handleNavigation("/add-students")}>
+				<Button onClick={() => handleNavigation("/manage-students", "add")}>
 					Add Students
 				</Button>
-				<Button onClick={() => handleNavigation("/remove-students")}>
+				<Button onClick={() => handleNavigation("/manage-students", "remove")}>
 					Remove Students
 				</Button>
 			</div>

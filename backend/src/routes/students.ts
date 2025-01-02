@@ -66,16 +66,16 @@ const getStudent = async (req: Request, res: Response): Promise<void> => {
 }
 
 const addStudent = async (req: Request, res: Response): Promise<void> => {
-    const { team, firstName, lastName, computingID, preferredPronouns, githubID, discordID } = req.body;
+    const { team, firstName, lastName, computingID, preferredPronouns, githubID, discordID } = req.body
 
-    console.log("Received student data:", req.body);
+    console.log("Received student data:", req.body)
 
     try {
-        const studentsRef = db.collection("students");
-        const snapshot = await studentsRef.get();
-        const studentCount = snapshot.size; 
+        const studentsRef = db.collection("students")
+        const snapshot = await studentsRef.get()
+        const studentCount = snapshot.size
         
-        const newStudentID = studentCount; 
+        const newStudentID = studentCount
 
         await studentsRef.doc(newStudentID.toString()).set({
 			id: computingID,
@@ -89,14 +89,39 @@ const addStudent = async (req: Request, res: Response): Promise<void> => {
             preferredPronouns,
         });
 
-        res.status(201).json({ message: "Student added successfully" });
+        res.status(201).json({ message: "Student added successfully" })
     } catch (error) {
-        console.error("Error adding student:", error);
-        res.status(500).json({ message: "Failed to add student" });
+        console.error("Error adding student:", error)
+        res.status(500).json({ message: "Failed to add student" })
+    }
+}
+
+const removeStudent = async (req: Request, res: Response): Promise<void> => {
+    const { computingID } = req.body
+
+    try {
+        const studentsRef = db.collection("students")
+        const snapshot = await studentsRef.where("computingID", "==", computingID).get()
+
+        if (snapshot.empty) {
+            console.log("No matching student found.");
+            res.status(404).json({ message: "Student not found" })
+            return
+        }
+
+        snapshot.forEach(async (doc) => {
+            await studentsRef.doc(doc.id).delete();
+        })
+
+        res.status(200).json({ message: "Student removed successfully" })
+    } catch (error) {
+        console.error("Error removing student:", error);
+        res.status(500).json({ message: "Failed to remove student" })
     }
 }
 
 router.post("/add", addStudent)
+router.post("/remove", removeStudent)
 router.get("/search", searchStudents)
 router.get("/getStudent/:studentID", getStudent)
  
