@@ -21,6 +21,7 @@ import Students from "./pages/professor/Students"
 import Teams from "./pages/professor/Teams"
 import TeamPage from "./pages/professor/TeamPage"
 import ManageStudents from "./pages/professor/ManageStudents"
+import SprintReviews from "./pages/student/SprintReviews"
 
 const queryClient = new QueryClient()
 
@@ -41,15 +42,19 @@ const router = createBrowserRouter([
 				element: <SignupStudent />,
 			},
 			{
-				path: "/sprints",
-				element: <StudentSprints />,
-			},
-			{
 				element: <StudentProtectedRoute />,
 				children: [
 					{
 						path: "/dashboard",
 						element: <Dashboard />,
+					},
+					{
+						path: "/sprints",
+						element: <StudentSprints />,
+					},
+					{
+						path: "/sprints/:sprintId/reviews",
+						element: <SprintReviews />,
 					},
 				],
 			},

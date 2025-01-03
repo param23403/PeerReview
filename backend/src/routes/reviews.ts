@@ -3,65 +3,74 @@ import { db } from "../../netlify/functions/firebase"
 
 const router = express.Router()
 
-const countCompletedReviewsBySprint = async (req: Request, res: Response): Promise<void> => {
-  const { reviewerId } = req.params;
-
-  if (!reviewerId) {
-    res.status(400).json({ message: "Missing studentId parameter" });
-    return;
-  }
-
-  try {
-    const snapshot = await db.collection("reviews").where("reviewerId", "==", reviewerId).get();
-
-    const completedReviews: Record<string, number> = {};
-    snapshot.docs.forEach((doc) => {
-      const { sprintId } = doc.data();
-      if (sprintId) {
-        completedReviews[sprintId] = (completedReviews[sprintId] || 0) + 1;
-      }
-    });
-
-    res.status(200).json(completedReviews);
-  } catch (error) {
-    console.error("Error fetching completed reviews:", error);
-    res.status(500).json({ message: "Failed to fetch reviews" });
-  }
-};
-
 const getReviewsByReviewerAndSprint = async (req: Request, res: Response): Promise<void> => {
   const { reviewerId, sprintId } = req.params;
 
   if (!reviewerId || !sprintId) {
-    res.status(400).json({ message: "Missing reviewerId or sprintId parameter" });
+    res.status(400).json({ message: "Missing reviewerId, sprintId, or teamId parameter" });
     return;
   }
 
   try {
-    const snapshot = await db
+    const studentSnapshot = await db
+      .collection("students")
+      .where("computingId", "==", reviewerId)
+      .get();
+
+    if (studentSnapshot.empty) {
+      res.status(404).json({ message: "Reviewer not found" });
+      return;
+    }
+
+    const studentData = studentSnapshot.docs[0].data();
+    const teamId = studentData.team;
+
+    // Fetch team by teamId
+    const teamSnapshot = await db.collection("teams").doc(teamId).get();
+
+    if (!teamSnapshot.exists) {
+      res.status(404).json({ message: "Team not found" });
+      return;
+    }
+
+    const teamData = teamSnapshot.data();
+    const students = teamData?.students || [];
+
+    // Filter out reviewer
+    const teammates = students.filter((student: any) => student.computingID !== reviewerId);
+
+    // Fetch existing reviews for reviewer and sprint
+    const reviewsSnapshot = await db
       .collection("reviews")
       .where("reviewerId", "==", reviewerId)
       .where("sprintId", "==", sprintId)
       .get();
 
-    if (snapshot.empty) {
-      res.status(404).json({ message: "No reviews found" });
-      return;
-    }
+    const existingReviews = reviewsSnapshot.docs.map((doc) => doc.data());
 
-    const reviews = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
+    // Combine teammates with review + completion status
+    const reviews = teammates.map((teammate: any) => {
+      const reviewCompleted = existingReviews.some(
+        (review) =>
+          review.reviewedTeammateId === teammate.computingID &&
+          review.sprintId === sprintId
+      );
+
+      return {
+        reviewedTeammateId: teammate.computingID,
+        reviewedTeammateName: `${teammate.firstName} ${teammate.lastName}`,
+        sprintId,
+        reviewCompleted,
+      };
+    });
 
     res.status(200).json(reviews);
   } catch (error) {
-    console.error("Error fetching reviews:", error);
-    res.status(500).json({ message: "Failed to fetch reviews" });
+    console.error("Error fetching team or reviews:", error);
+    res.status(500).json({ message: "Failed to fetch team or reviews" });
   }
 };
 
-router.get("/countCompletedReviewsBySprint/:reviewerId", countCompletedReviewsBySprint);
-router.get("/reviews/:reviewerId/:sprintId", getReviewsByReviewerAndSprint);
+router.get("/getReviews/:reviewerId/:sprintId",getReviewsByReviewerAndSprint);
 
 export default router;
