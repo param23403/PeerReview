@@ -7,6 +7,7 @@ import authRouter from "../../src/routes/auth"
 import sprintRouter from "../../src/routes/sprints"
 import teamRouter from "../../src/routes/teams"
 import studentRouter from "../../src/routes/students"
+import reviewsRouter from "../../src/routes/reviews"
 
 const app = express()
 
@@ -26,6 +27,7 @@ app.use("/api/auth", authRouter)
 app.use("/api/sprints", sprintRouter)
 app.use("/api/teams", teamRouter)
 app.use("/api/students", studentRouter)
+app.use("/api/reviews", reviewsRouter)
 
 export const handler = serverless(app)
 
