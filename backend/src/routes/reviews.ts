@@ -59,8 +59,7 @@ const getReviews = async (req: Request, res: Response): Promise<void> => {
 			...review,
 			reviewerName: studentData.get(review.reviewerId)?.name || "Unknown",
 			revieweeName: studentData.get(review.reviewedTeammateId)?.name || "Unknown",
-			reviewerTeam: studentData.get(review.reviewerId)?.team || "Unassigned",
-			revieweeTeam: studentData.get(review.reviewedTeammateId)?.team || "Unassigned",
+			team: studentData.get(review.reviewerId)?.team || "Unassigned",
 		}))
 
 		const filteredReviews = enrichedReviews.filter(
