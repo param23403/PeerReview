@@ -1,5 +1,4 @@
 import express, { Request, Response } from "express"
-import { CollectionReference, Query, DocumentData } from "firebase-admin/firestore"
 import { db } from "../../netlify/functions/firebase"
 
 const router = express.Router()
@@ -22,31 +21,31 @@ const fetchStudentData = async (studentIds: string[]): Promise<Map<string, any>>
 }
 
 const getReviews = async (req: Request, res: Response): Promise<void> => {
-	const { search = "", sprintId = "", page = 1, limit = 20 } = req.query
+	const { search = "", sprintId = "all", page = 1, limit = 20 } = req.query
 
 	const searchTerm = search.toString().toLowerCase()
 	const pageNumber = parseInt(page.toString(), 10)
 	const pageSize = parseInt(limit.toString(), 10)
 
 	try {
-		const reviewsRef: CollectionReference<DocumentData> = db.collection("reviews") as CollectionReference<DocumentData>
-		let query: Query<DocumentData> = reviewsRef
+		let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> = db.collection("reviews")
 
-		if (sprintId) {
+		if (sprintId && sprintId !== "all") {
 			query = query.where("sprintId", "==", sprintId)
 		}
 
-		const reviewsSnapshot = await query.limit(500).get()
+		const snapshot = await query.get()
 
-		if (reviewsSnapshot.empty) {
+		if (snapshot.empty) {
 			res.status(200).json({
 				reviews: [],
 				hasNextPage: false,
+				total: 0,
 			})
 			return
 		}
 
-		const reviews = reviewsSnapshot.docs.map((doc) => ({
+		const reviews = snapshot.docs.map((doc) => ({
 			id: doc.id,
 			...doc.data(),
 		}))
@@ -63,17 +62,17 @@ const getReviews = async (req: Request, res: Response): Promise<void> => {
 		}))
 
 		const filteredReviews = enrichedReviews.filter(
-			(review) => review.reviewerName.toLowerCase().includes(searchTerm) || review.revieweeName.toLowerCase().includes(searchTerm)
+			(review) => review.revieweeName.toLowerCase().includes(searchTerm)
 		)
 
+		const total = filteredReviews.length
 		const paginatedReviews = filteredReviews.slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
-
-		const hasNextPage = pageNumber * pageSize < filteredReviews.length
+		const hasNextPage = pageNumber * pageSize < total
 
 		res.status(200).json({
 			reviews: paginatedReviews,
 			hasNextPage,
-			nextPage: hasNextPage ? pageNumber + 1 : null,
+			total,
 		})
 	} catch (error) {
 		console.error("Error fetching reviews:", error)
