@@ -64,7 +64,7 @@ const Navbar = () => {
 	}, [user, userData, handleLogout])
 
 	return (
-		<nav className="bg-background fixed w-screen top-0">
+		<nav className="bg-background fixed w-screen top-0 z-10">
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div className="flex h-16 items-center justify-between">
 					<div className="flex items-center">
@@ -74,7 +74,7 @@ const Navbar = () => {
 					</div>
 					<div className="hidden md:block">
 						<div className="ml-10 flex items-center space-x-4">
-							{navItems.map((item) => (
+							{navItems.map((item: any) => (
 								<NavLink key={item.name} to={item.href}>
 									{({ isActive }) => (
 										<Button
@@ -101,7 +101,7 @@ const Navbar = () => {
 							<SheetContent side="right" className="w-[240px] sm:w-[300px]">
 								<div className="mt-6 flow-root">
 									<div className="space-y-2 py-6">
-										{navItems.map((item) => (
+										{navItems.map((item: any) => (
 											<NavLink key={item.name} to={item.href}>
 												{({ isActive }) => (
 													<Button
