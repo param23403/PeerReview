@@ -2,6 +2,9 @@ import React from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Skeleton } from "../components/ui/skeleton"
 import { Separator } from "../components/ui/separator"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../components/ui/tooltip"
+import { FaDiscord } from "react-icons/fa6"
+import { FaGithub } from "react-icons/fa6"
 
 interface StudentCardProps {
 	name?: string
@@ -40,14 +43,32 @@ const StudentCard: React.FC<StudentCardProps> = ({ name, computingId, team, gith
 
 			<CardContent className="p-0">
 				<div className="flex items-center text-sm text-muted-foreground space-x-4">
-					<div className="flex items-center">
-						<span className="text-muted-foreground mr-1">GitHub:</span>
-						<span className="font-medium">{githubId || "N/A"}</span>
+					<div className="flex items-center space-x-2">
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger>
+									<FaGithub className="text-xl" />
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>GitHub</p>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+						<p className="font-medium">{githubId || "N/A"}</p>
 					</div>
 					<Separator orientation="vertical" className="h-4" />
-					<div className="flex items-center">
-						<span className="text-muted-foreground mr-1">Discord:</span>
-						<span className="font-medium">{discordId || "N/A"}</span>
+					<div className="flex items-center space-x-2">
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger>
+									<FaDiscord className="text-xl" />
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Discord</p>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+						<p className="font-medium">{discordId || "N/A"}</p>
 					</div>
 				</div>
 				<p className="mt-2 text-sm text-muted-foreground">{active ? "Joined PeerReview App" : "Not Yet Joined"}</p>
