@@ -57,7 +57,7 @@ const Students = () => {
 					placeholder="Search by name or computing ID..."
 					value={searchTerm}
 					onChange={(e) => handleSearchChange(e.target.value)}
-					className="w-full p-2 border border-gray-300 rounded-md"
+					className="w-full p-2"
 				/>
 			</div>
 

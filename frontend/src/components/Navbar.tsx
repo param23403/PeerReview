@@ -49,7 +49,7 @@ const Navbar = () => {
 			return [
 				{ name: "Teams", href: "/teams" },
 				{ name: "Students", href: "/students" },
-				{ name: "Sprints", href: "/sprints" },
+				{ name: "Reviews", href: "/reviews" },
 				{ name: "Settings", href: "/settings" },
 				{
 					name: "Logout",

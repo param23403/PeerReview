@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
+import { useSearchParams } from "react-router-dom"
 import axios from "axios"
 import { Input } from "../../components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
-import ReviewCard from "../../components/ReviewCard"
-import Spinner from "../../components/Spinner"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table"
 import {
 	Pagination,
 	PaginationContent,
@@ -15,38 +14,59 @@ import {
 	PaginationNext,
 	PaginationPrevious,
 } from "../../components/ui/pagination"
+import Spinner from "../../components/Spinner"
 
-const fetchReviews = async ({ searchTerm, sprintId, page }: { searchTerm: string; sprintId: string; page: number }) => {
+const fetchReviews = async ({ searchTerm, sprintId, page, limit }: { searchTerm: string; sprintId: string; page: number; limit: number }) => {
 	const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/reviews/search`, {
-		params: { search: searchTerm, sprintId, page, limit: 15 },
+		params: { search: searchTerm, sprintId, page, limit },
 	})
 	return response.data
 }
 
-const Reviews = () => {
-	const [searchTerm, setSearchTerm] = useState("")
-	const [debouncedSearch, setDebouncedSearch] = useState(searchTerm)
+const fetchSprints = async () => {
+	const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/sprints/getSprints`)
+	return response.data
+}
 
-	const location = useLocation()
-	const queryParams = new URLSearchParams(location.search)
-	const page = parseInt(queryParams.get("page") || "1", 10)
-	const selectedSprint = queryParams.get("sprint") || ""
-	const navigate = useNavigate()
+const Reviews = () => {
+	const [searchParams, setSearchParams] = useSearchParams()
+	const [limit] = useState(15)
+
+	const searchTerm = searchParams.get("search") || ""
+	const page = parseInt(searchParams.get("page") || "1", 10)
+	const sprintId = searchParams.get("sprint") || ""
+
+	const [debouncedSearch, setDebouncedSearch] = useState(searchTerm)
 
 	useEffect(() => {
 		const timer = setTimeout(() => setDebouncedSearch(searchTerm), 200)
 		return () => clearTimeout(timer)
 	}, [searchTerm])
 
-	const { data, error, isLoading, isSuccess, isError } = useQuery({
-		queryKey: ["reviews", debouncedSearch, selectedSprint, page],
-		queryFn: () =>
-			fetchReviews({
-				searchTerm: debouncedSearch,
-				sprintId: selectedSprint,
-				page,
-			}),
+	const {
+		data: reviewsData,
+		error: reviewsError,
+		isLoading: reviewsLoading,
+		isError: reviewsIsError,
+	} = useQuery({
+		queryKey: ["reviews", debouncedSearch, sprintId, page, limit],
+		queryFn: () => fetchReviews({ searchTerm: debouncedSearch, sprintId, page, limit }),
 	})
+
+	const { data: sprintsData, isLoading: sprintsLoading } = useQuery({
+		queryKey: ["sprints"],
+		queryFn: fetchSprints,
+	})
+
+	const totalPages = Math.ceil((reviewsData?.total || 0) / limit)
+
+	const handleSearchChange = (value: string) => {
+		setSearchParams({ search: value, page: "1", sprint: sprintId })
+	}
+
+	const handleSprintChange = (value: string) => {
+		setSearchParams({ search: searchTerm, page: "1", sprint: value })
+	}
 
 	return (
 		<div className="container mx-auto p-6">
@@ -55,72 +75,100 @@ const Reviews = () => {
 			<div className="mb-6 flex gap-4">
 				<Input
 					type="text"
-					placeholder="Search by reviewer or reviewee..."
+					placeholder="Search by reviewee name..."
 					value={searchTerm}
-					onChange={(e) => setSearchTerm(e.target.value)}
-					className="w-full p-2 border border-input rounded-md"
+					onChange={(e) => handleSearchChange(e.target.value)}
+					className="w-full p-2 border"
 				/>
-				<Select
-					value={selectedSprint}
-					onValueChange={(value) => {
-						if (value === "all") {
-							navigate(`?page=1&search=&sprint=`)
-						} else {
-							navigate(`?page=1&search=&sprint=${value}`)
-						}
-					}}
-				>
+				<Select value={sprintId} onValueChange={(value) => handleSprintChange(value)}>
 					<SelectTrigger className="w-48">
 						<SelectValue placeholder="All Sprints" />
 					</SelectTrigger>
 					<SelectContent>
 						<SelectItem value="all">All Sprints</SelectItem>
-						<SelectItem value="1">Sprint 1</SelectItem>
-						<SelectItem value="2">Sprint 2</SelectItem>
-						{/* Add other sprint options dynamically */}
+						{sprintsLoading ? (
+							<SelectItem value="loading" disabled>
+								Loading...
+							</SelectItem>
+						) : (
+							sprintsData?.map((sprint: { id: string }) => (
+								<SelectItem key={sprint.id} value={sprint.id}>
+									Sprint {sprint.id}
+								</SelectItem>
+							))
+						)}
 					</SelectContent>
 				</Select>
 			</div>
 
-			{isError && <div className="text-destructive-foreground">Error: {error instanceof Error ? error.message : "Failed to fetch reviews"}</div>}
+			{reviewsIsError && (
+				<div className="text-destructive-foreground">Error: {reviewsError instanceof Error ? reviewsError.message : "Failed to fetch reviews"}</div>
+			)}
 
-			<div className="space-y-4">
-				{isLoading ? (
+			<div className="overflow-x-auto">
+				{reviewsLoading ? (
 					<Spinner />
 				) : (
-					isSuccess &&
-					data.reviews.map((review: any) => (
-						<ReviewCard
-							key={review.id}
-							reviewerName={review.reviewerName}
-							revieweeName={review.revieweeName}
-							team={review.team}
-							sprintId={review.sprintId}
-							redFlag={review.redFlag}
-						/>
-					))
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Reviewee Name</TableHead>
+								<TableHead>Reviewer Name</TableHead>
+								<TableHead>Team</TableHead>
+								<TableHead>Sprint</TableHead>
+								<TableHead>Red Flag</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{reviewsData?.reviews.map((review: any) => (
+								<TableRow key={review.id}>
+									<TableCell>{review.revieweeName}</TableCell>
+									<TableCell>{review.reviewerName}</TableCell>
+									<TableCell>{review.team || "Unassigned"}</TableCell>
+									<TableCell>{review.sprintId || "N/A"}</TableCell>
+									<TableCell>{review.redFlag ? "Yes" : "No"}</TableCell>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
 				)}
 			</div>
 
-			{/* Pagination Controls */}
+			{/* Pagination */}
 			<div className="mt-6 flex justify-center">
 				<Pagination>
 					<PaginationContent>
-						{page !== 1 && (
+						{page > 1 && (
 							<PaginationItem>
-								<PaginationPrevious href={`?page=${page - 1}&search=${searchTerm}&sprint=${selectedSprint}`}>Previous</PaginationPrevious>
+								<PaginationPrevious href={`?search=${searchTerm}&sprint=${sprintId}&page=${page - 1}`} />
 							</PaginationItem>
 						)}
-						{Array.from({ length: page + (data?.hasNextPage ? 1 : 0) }).map((_, idx) => (
-							<PaginationItem key={idx}>
-								<PaginationLink href={`?page=${idx + 1}&search=${searchTerm}&sprint=${selectedSprint}`} isActive={idx + 1 === page}>
-									{idx + 1}
-								</PaginationLink>
-							</PaginationItem>
-						))}
-						{data?.hasNextPage && (
+						{Array.from({ length: totalPages })
+							.map((_, idx) => idx + 1)
+							.filter((pageNumber) => pageNumber === 1 || pageNumber === totalPages || Math.abs(pageNumber - page) <= 1)
+							.reduce<(number | "ellipsis")[]>((acc, pageNumber, idx, array) => {
+								if (idx > 0 && pageNumber !== array[idx - 1] + 1) {
+									acc.push("ellipsis")
+								}
+								acc.push(pageNumber)
+								return acc
+							}, [])
+							.map((item, idx) =>
+								item === "ellipsis" ? (
+									<PaginationItem key={`ellipsis-${idx}`}>
+										<PaginationEllipsis />
+									</PaginationItem>
+								) : (
+									<PaginationItem key={item}>
+										<PaginationLink href={`?search=${searchTerm}&sprint=${sprintId}&page=${item}`} isActive={item === page}>
+											{item}
+										</PaginationLink>
+									</PaginationItem>
+								)
+							)}
+						{page < totalPages && (
 							<PaginationItem>
-								<PaginationNext href={`?page=${page + 1}&search=${searchTerm}&sprint=${selectedSprint}`}>Next</PaginationNext>
+								<PaginationNext href={`?search=${searchTerm}&sprint=${sprintId}&page=${page + 1}`} />
 							</PaginationItem>
 						)}
 					</PaginationContent>
