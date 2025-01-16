@@ -21,7 +21,7 @@ const fetchStudentData = async (studentIds: string[]): Promise<Map<string, any>>
 }
 
 const getReviews = async (req: Request, res: Response): Promise<void> => {
-	const { search = "", sprintId = "all", page = 1, limit = 20 } = req.query
+	const { search = "", sprintId = "all", redFlagsOnly = false, page = 1, limit = 20 } = req.query
 
 	const searchTerm = search.toString().toLowerCase()
 	const pageNumber = parseInt(page.toString(), 10)
@@ -32,6 +32,10 @@ const getReviews = async (req: Request, res: Response): Promise<void> => {
 
 		if (sprintId && sprintId !== "all") {
 			query = query.where("sprintId", "==", sprintId)
+		}
+
+		if (redFlagsOnly && redFlagsOnly === "true") {
+			query = query.where("redFlag", "==", true)
 		}
 
 		const snapshot = await query.get()
@@ -58,11 +62,13 @@ const getReviews = async (req: Request, res: Response): Promise<void> => {
 			...review,
 			reviewerName: studentData.get(review.reviewerId)?.name || "Unknown",
 			revieweeName: studentData.get(review.reviewedTeammateId)?.name || "Unknown",
+			reviewerComputingId: studentData.get(review.reviewerId)?.computingId || "Unknown",
+			revieweeComputingId: studentData.get(review.reviewedTeammateId)?.computingId || "Unknown",
 			team: studentData.get(review.reviewerId)?.team || "Unassigned",
 		}))
 
 		const filteredReviews = enrichedReviews.filter(
-			(review) => review.revieweeName.toLowerCase().includes(searchTerm)
+			(review) => review.revieweeName.toLowerCase().includes(searchTerm) || review.revieweeComputingId.toLowerCase().includes(searchTerm)
 		)
 
 		const total = filteredReviews.length

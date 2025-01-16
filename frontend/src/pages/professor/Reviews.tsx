@@ -15,10 +15,12 @@ import {
 	PaginationPrevious,
 } from "../../components/ui/pagination"
 import Spinner from "../../components/Spinner"
+import { Checkbox } from "../../components/ui/checkbox"
+import { Label } from "../../components/ui/label"
 
-const fetchReviews = async ({ searchTerm, sprintId, page, limit }: { searchTerm: string; sprintId: string; page: number; limit: number }) => {
+const fetchReviews = async ({ searchTerm, sprintId, redFlagsOnly, page, limit }: { searchTerm: string; sprintId: string; redFlagsOnly: boolean; page: number; limit: number }) => {
 	const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/reviews/search`, {
-		params: { search: searchTerm, sprintId, page, limit },
+		params: { search: searchTerm, sprintId, redFlagsOnly, page, limit },
 	})
 	return response.data
 }
@@ -35,6 +37,7 @@ const Reviews = () => {
 	const searchTerm = searchParams.get("search") || ""
 	const page = parseInt(searchParams.get("page") || "1", 10)
 	const sprintId = searchParams.get("sprint") || ""
+	const redFlags = searchParams.get("redFlags") == "true" ? true : false
 
 	const [debouncedSearch, setDebouncedSearch] = useState(searchTerm)
 
@@ -49,8 +52,8 @@ const Reviews = () => {
 		isLoading: reviewsLoading,
 		isError: reviewsIsError,
 	} = useQuery({
-		queryKey: ["reviews", debouncedSearch, sprintId, page, limit],
-		queryFn: () => fetchReviews({ searchTerm: debouncedSearch, sprintId, page, limit }),
+		queryKey: ["reviews", debouncedSearch, sprintId, redFlags, page, limit],
+		queryFn: () => fetchReviews({ searchTerm: debouncedSearch, sprintId, redFlagsOnly: redFlags.valueOf(), page, limit }),
 	})
 
 	const { data: sprintsData, isLoading: sprintsLoading } = useQuery({
@@ -61,11 +64,15 @@ const Reviews = () => {
 	const totalPages = Math.ceil((reviewsData?.total || 0) / limit)
 
 	const handleSearchChange = (value: string) => {
-		setSearchParams({ search: value, page: "1", sprint: sprintId })
+		setSearchParams({ search: value, page: "1", sprint: sprintId, redFlags: redFlags.toString() })
 	}
 
 	const handleSprintChange = (value: string) => {
-		setSearchParams({ search: searchTerm, page: "1", sprint: value })
+		setSearchParams({ search: searchTerm, page: "1", sprint: value, redFlags: redFlags.toString() })
+	}
+
+	const handleRedFlagsChange = (value: boolean) => {
+		setSearchParams({ search: searchTerm, page: "1", sprint: sprintId, redFlags: value.toString() })
 	}
 
 	return (
@@ -75,7 +82,7 @@ const Reviews = () => {
 			<div className="mb-6 flex gap-4">
 				<Input
 					type="text"
-					placeholder="Search by reviewee name..."
+					placeholder="Search by reviewee name or computing ID..."
 					value={searchTerm}
 					onChange={(e) => handleSearchChange(e.target.value)}
 					className="w-full p-2 border"
@@ -99,6 +106,10 @@ const Reviews = () => {
 						)}
 					</SelectContent>
 				</Select>
+				<div className="flex items-center space-x-2">
+					<Checkbox id="red-flags" checked={redFlags} onCheckedChange={(value: any) => handleRedFlagsChange(value)} />
+					<Label htmlFor="red-flags" className="w-32">Red Flags Only</Label>
+				</div>
 			</div>
 
 			{reviewsIsError && (
@@ -112,8 +123,8 @@ const Reviews = () => {
 					<Table>
 						<TableHeader>
 							<TableRow>
-								<TableHead>Reviewee Name</TableHead>
-								<TableHead>Reviewer Name</TableHead>
+								<TableHead>Reviewee</TableHead>
+								<TableHead>Reviewer</TableHead>
 								<TableHead>Team</TableHead>
 								<TableHead>Sprint</TableHead>
 								<TableHead>Red Flag</TableHead>
@@ -122,8 +133,8 @@ const Reviews = () => {
 						<TableBody>
 							{reviewsData?.reviews.map((review: any) => (
 								<TableRow key={review.id}>
-									<TableCell>{review.revieweeName}</TableCell>
-									<TableCell>{review.reviewerName}</TableCell>
+									<TableCell><strong>{review.revieweeName + " (" + review.revieweeComputingId + ")"}</strong></TableCell>
+									<TableCell>{review.reviewerName + " (" + review.reviewerComputingId + ")"}</TableCell>
 									<TableCell>{review.team || "Unassigned"}</TableCell>
 									<TableCell>{review.sprintId || "N/A"}</TableCell>
 									<TableCell>{review.redFlag ? "Yes" : "No"}</TableCell>

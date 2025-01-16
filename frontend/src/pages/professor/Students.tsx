@@ -47,6 +47,8 @@ const Students = () => {
 		setSearchParams({ search: value, page: "1" })
 	}
 
+	console.info(data)
+
 	return (
 		<div className="container mx-auto p-6">
 			<h1 className="text-3xl font-bold mb-4 text-primary">Student Search</h1>
@@ -84,8 +86,8 @@ const Students = () => {
 									<TableCell>{student.name}</TableCell>
 									<TableCell>{student.computingId}</TableCell>
 									<TableCell>{student.team || "Unassigned"}</TableCell>
-									<TableCell>{student.githubId || "N/A"}</TableCell>
-									<TableCell>{student.discordId || "N/A"}</TableCell>
+									<TableCell>{student.githubID || "N/A"}</TableCell>
+									<TableCell>{student.discordID || "N/A"}</TableCell>
 									<TableCell>{student.active ? "Active" : "Not Active"}</TableCell>
 								</TableRow>
 							))}
