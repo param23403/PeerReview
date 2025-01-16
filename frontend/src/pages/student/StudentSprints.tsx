@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "../../components/ui/card";
 import { CheckCircle, XCircle, ChevronRight, Lock } from "lucide-react";
@@ -80,40 +80,40 @@ export default function StudentSprints() {
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const studentId = useMemo(() => userData?.studentId, [userData]);
-
-  const fetchSprints = async (id: string) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/sprints/getStudentSprints/${id}`
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch sprints");
-      }
-
-      const sprintsData = await response.json();
-
-      setSprints(
-        sprintsData.map((sprint: any) => ({
-          ...sprint,
-          sprintDueDate: new Date(sprint.sprintDueDate._seconds * 1000),
-          reviewDueDate: new Date(sprint.reviewDueDate._seconds * 1000),
-        }))
-      );
-    } catch (err: any) {
-      console.error("Error:", err);
-      setError("Failed to load sprints. Please retry.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
+    const studentId = userData?.studentId;
     if (!authLoading && studentId) {
-      fetchSprints(studentId);
+      const fetchSprints = async () => {
+        try {
+          const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_URL}/sprints/getStudentSprints/${studentId}`
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch sprints");
+          }
+
+          const sprintsData = await response.json();
+
+          setSprints(
+            sprintsData.map((sprint: any) => ({
+              ...sprint,
+              sprintDueDate: new Date(sprint.sprintDueDate._seconds * 1000),
+              reviewDueDate: new Date(sprint.reviewDueDate._seconds * 1000),
+            }))
+          );
+        } catch (err: any) {
+          console.error("Error:", err);
+          setError("Failed to load sprints. Please retry.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchSprints();
     }
-  }, [authLoading, studentId]);
+  }, [authLoading, userData]);
 
   if (authLoading) {
     return (

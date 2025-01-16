@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Card, CardContent } from "../../components/ui/card";
 import { CheckCircle, XCircle, ChevronRight } from "lucide-react";
@@ -20,10 +20,11 @@ export default function SprintReviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const reviewerId = useMemo(() => userData?.studentId, [userData]);
 
   useEffect(() => {
     if (authLoading) return;
+
+    const reviewerId = userData?.studentId;
 
     const fetchReviews = async () => {
       if (!sprint?.id || !reviewerId) {
@@ -52,7 +53,7 @@ export default function SprintReviews() {
     };
 
     fetchReviews();
-  }, [authLoading, sprint, reviewerId]);
+  }, [authLoading, sprint]);
 
   if (authLoading) {
     return (
