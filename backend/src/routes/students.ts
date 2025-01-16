@@ -14,12 +14,13 @@ const searchStudents = async (req: Request, res: Response): Promise<void> => {
 		const studentsRef = db.collection("students")
 		let query = studentsRef
 
-		const snapshot = await query.limit(500).get()
+		const snapshot = await query.get()
 
 		if (snapshot.empty) {
 			res.status(200).json({
 				students: [],
 				hasNextPage: false,
+				total: 0,
 			})
 			return
 		}
@@ -28,14 +29,15 @@ const searchStudents = async (req: Request, res: Response): Promise<void> => {
 			.map((doc) => ({ id: doc.id, ...doc.data() }))
 			.filter((student: any) => student.name.toLowerCase().includes(searchTerm) || student.computingId.toLowerCase().includes(searchTerm))
 
+		const total = filteredStudents.length
 		const paginatedStudents = filteredStudents.slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
 
-		const hasNextPage = pageNumber * pageSize < filteredStudents.length
+		const hasNextPage = pageNumber * pageSize < total
 
 		res.status(200).json({
 			students: paginatedStudents,
 			hasNextPage,
-			nextPage: hasNextPage ? pageNumber + 1 : null,
+			total,
 		})
 	} catch (error) {
 		console.error("Error fetching students: ", error)
