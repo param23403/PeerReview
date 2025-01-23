@@ -35,7 +35,7 @@ const Navbar = () => {
 			]
 		} else if (userData?.role === "student") {
 			return [
-				{ name: "Dashboard", href: "/dashboard" },
+				{ name: "Sprints", href: "/sprints" },
 				{ name: "Settings", href: "/settings" },
 				{
 					name: "Logout",
@@ -78,7 +78,7 @@ const Navbar = () => {
 								<NavLink key={item.name} to={item.href}>
 									{({ isActive }) => (
 										<Button
-											variant={item.variant || "link"}
+											variant={"link"}
 											onClick={item.action}
 											className={`flex items-center ${isActive ? "font-bold" : ""}`}
 										>
