@@ -53,30 +53,36 @@ const getStudentSprints = async (req: Request, res: Response): Promise<void> => 
 
   try {
     // Fetch the student document directly by its id
-    const studentDoc = await db.collection("students").doc(reviewerId).get();
+    const studentSnapshot = await db
+    .collection("students")
+    .where("computingId", "==", reviewerId)
+    .get();
 
-    if (!studentDoc.exists) {
+    if (studentSnapshot.empty) {
       res.status(404).json({ message: "Student not found" });
       return;
     }
 
-    const { team } = studentDoc.data() || {};
+    const studentData = studentSnapshot.docs[0].data();
+    const teamId = studentData.team;
 
-    if (!team) {
+    if (!teamId) {
       res.status(400).json({ message: "Student not assigned to a team" });
       return;
     }
 
-    // Fetch the team document by id
-    const teamDoc = await db.collection("teams").doc(team).get();
+    // Fetch all students with the same teamId
+    const teamStudentsSnapshot = await db
+      .collection("students")
+      .where("team", "==", teamId)
+      .get();
 
-    if (!teamDoc.exists) {
-      res.status(404).json({ message: "Team not found" });
+    if (teamStudentsSnapshot.empty) {
+      res.status(404).json({ message: "No students found for this team" });
       return;
     }
 
-    const teamData = teamDoc.data();
-    const totalStudents = teamData?.students?.length || 0;
+    const totalStudents = teamStudentsSnapshot.docs.length;
 
     // Fetch completed reviews
     const reviewsSnapshot = await db

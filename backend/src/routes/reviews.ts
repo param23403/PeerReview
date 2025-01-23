@@ -1,17 +1,18 @@
-import express, { Request, Response } from "express"
-import { db } from "../../netlify/functions/firebase"
+import express, { Request, Response } from "express";
+import { db } from "../../netlify/functions/firebase";
 
-const router = express.Router()
+const router = express.Router();
 
 const getReviewsByReviewerAndSprint = async (req: Request, res: Response): Promise<void> => {
   const { reviewerId, sprintId } = req.params;
 
   if (!reviewerId || !sprintId) {
-    res.status(400).json({ message: "Missing reviewerId, sprintId, or teamId parameter" });
+    res.status(400).json({ message: "Missing reviewerId or sprintId parameter" });
     return;
   }
 
   try {
+    // Fetch the student to get their teamId
     const studentSnapshot = await db
       .collection("students")
       .where("computingId", "==", reviewerId)
@@ -25,19 +26,16 @@ const getReviewsByReviewerAndSprint = async (req: Request, res: Response): Promi
     const studentData = studentSnapshot.docs[0].data();
     const teamId = studentData.team;
 
-    // Fetch team by teamId
-    const teamSnapshot = await db.collection("teams").doc(teamId).get();
+    // Fetch students from the same teamId
+    const teamStudentsSnapshot = await db
+      .collection("students")
+      .where("team", "==", teamId)
+      .get();
 
-    if (!teamSnapshot.exists) {
-      res.status(404).json({ message: "Team not found" });
-      return;
-    }
+    const students = teamStudentsSnapshot.docs.map(doc => doc.data());
 
-    const teamData = teamSnapshot.data();
-    const students = teamData?.students || [];
-
-    // Filter out reviewer
-    const teammates = students.filter((student: any) => student.computingID !== reviewerId);
+    // Filter out the reviewer themselves
+    const teammates = students.filter((student: any) => student.computingId !== reviewerId);
 
     // Fetch existing reviews for reviewer and sprint
     const reviewsSnapshot = await db
@@ -46,19 +44,19 @@ const getReviewsByReviewerAndSprint = async (req: Request, res: Response): Promi
       .where("sprintId", "==", sprintId)
       .get();
 
-    const existingReviews = reviewsSnapshot.docs.map((doc) => doc.data());
+    const existingReviews = reviewsSnapshot.docs.map(doc => doc.data());
 
     // Combine teammates with review + completion status
     const reviews = teammates.map((teammate: any) => {
       const reviewCompleted = existingReviews.some(
         (review) =>
-          review.reviewedTeammateId === teammate.computingID &&
+          review.reviewedTeammateId === teammate.computingId &&
           review.sprintId === sprintId
       );
 
       return {
-        reviewedTeammateId: teammate.computingID,
-        reviewedTeammateName: `${teammate.firstName} ${teammate.lastName}`,
+        reviewedTeammateId: teammate.computingId,
+        reviewedTeammateName: teammate.name,
         sprintId,
         reviewCompleted,
       };
@@ -71,6 +69,6 @@ const getReviewsByReviewerAndSprint = async (req: Request, res: Response): Promi
   }
 };
 
-router.get("/getReviews/:reviewerId/:sprintId",getReviewsByReviewerAndSprint);
+router.get("/getReviews/:reviewerId/:sprintId", getReviewsByReviewerAndSprint);
 
 export default router;

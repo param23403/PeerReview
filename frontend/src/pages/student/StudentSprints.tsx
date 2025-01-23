@@ -21,7 +21,15 @@ const getSprintStatus = (sprint: Sprint) => {
   return { isPastSprintDueDate, isReviewOpen };
 };
 
-function SprintCard({ sprint, isPastSprintDueDate, isReviewOpen }: { sprint: Sprint; isPastSprintDueDate: boolean; isReviewOpen: boolean; }) {
+function SprintCard({
+  sprint,
+  isPastSprintDueDate = false,
+  isReviewOpen = false,
+}: {
+  sprint: Sprint;
+  isPastSprintDueDate?: boolean;
+  isReviewOpen?: boolean;
+}) {
   const statusIcon = () => {
     if (!isReviewOpen) {
       return <Lock className="text-gray-500 w-6 h-6" />;
@@ -32,10 +40,8 @@ function SprintCard({ sprint, isPastSprintDueDate, isReviewOpen }: { sprint: Spr
 
     return (
       <>
-        <Icon className={`w-6 h-6 ${isComplete ? "text-green-500" : "text-red-500"}`}/>
-        <span className="mr-2">
-          {isComplete ? "Complete" : "Incomplete"}
-        </span>
+        <Icon className={`w-6 h-6 ${isComplete ? "text-green-500" : "text-red-500"}`} />
+        <span className="mr-2">{isComplete ? "Complete" : "Incomplete"}</span>
       </>
     );
   };
@@ -56,19 +62,19 @@ function SprintCard({ sprint, isPastSprintDueDate, isReviewOpen }: { sprint: Spr
     <Card>
       <CardContent className="p-4 flex justify-between items-center">
         <div className="flex-grow">
-          <h2 className="text-lg font-semibold">Sprint {sprint.id}: {sprint.name}</h2>
+          <h2 className="text-lg font-semibold">
+            Sprint {sprint.id}: {sprint.name || "Unnamed Sprint"}
+          </h2>
           <p className="text-sm text-gray-500">{statusLabel()}</p>
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             {statusIcon()}
             <span className="text-base text-gray-500">
-              {sprint.completedReviews}/{sprint.totalReviews}
+              {sprint.completedReviews ?? 0}/{sprint.totalReviews ?? 0}
             </span>
           </div>
-          {isReviewOpen && (
-            <ChevronRight className="text-gray-400 w-6 h-6" />
-          )}
+          {isReviewOpen && <ChevronRight className="text-gray-400 w-6 h-6" />}
         </div>
       </CardContent>
     </Card>
@@ -78,7 +84,7 @@ function SprintCard({ sprint, isPastSprintDueDate, isReviewOpen }: { sprint: Spr
 export default function StudentSprints() {
   const { userData, loading: authLoading } = useAuth();
   const [sprints, setSprints] = useState<Sprint[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -96,13 +102,20 @@ export default function StudentSprints() {
 
           const sprintsData = await response.json();
 
-          setSprints(
-            sprintsData.map((sprint: any) => ({
-              ...sprint,
-              sprintDueDate: new Date(sprint.sprintDueDate._seconds * 1000),
-              reviewDueDate: new Date(sprint.reviewDueDate._seconds * 1000),
-            }))
-          );
+          if (Array.isArray(sprintsData)) {
+            setSprints(
+              sprintsData.map((sprint: any) => ({
+                id: sprint.id || "",
+                name: sprint.name || "Unnamed Sprint",
+                sprintDueDate: new Date(sprint.sprintDueDate?._seconds * 1000 || Date.now()),
+                reviewDueDate: new Date(sprint.reviewDueDate?._seconds * 1000 || Date.now()),
+                completedReviews: sprint.completedReviews ?? 0,
+                totalReviews: sprint.totalReviews ?? 0,
+              }))
+            );
+          } else {
+            throw new Error("Invalid sprint data format");
+          }
         } catch (err: any) {
           console.error("Error:", err);
           setError("Failed to load sprints. Please retry.");
@@ -122,7 +135,7 @@ export default function StudentSprints() {
       </div>
     );
   }
-  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -130,14 +143,14 @@ export default function StudentSprints() {
       </div>
     );
   }
-  
+
   if (error) {
     return (
       <div className="flex justify-center items-center h-screen">
         <p>{error}</p>
       </div>
     );
-  }  
+  }
 
   return (
     <div className="container mx-auto p-4 flex justify-center">

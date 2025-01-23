@@ -10,7 +10,6 @@ import Layout from "./components/Layout"
 import Login from "./pages/Login"
 import Landing from "./pages/Landing"
 import SignupStudent from "./pages/Signup"
-import Dashboard from "./pages/student/Dashboard"
 import StudentSprints from "./pages/student/StudentSprints"
 import { AuthProvider } from "./auth/AuthContext"
 import StudentProtectedRoute from "./components/StudentProtectedRoute"
@@ -44,10 +43,6 @@ const router = createBrowserRouter([
 			{
 				element: <StudentProtectedRoute />,
 				children: [
-					{
-						path: "/dashboard",
-						element: <Dashboard />,
-					},
 					{
 						path: "/sprints",
 						element: <StudentSprints />,

@@ -24,7 +24,7 @@ export default function Login() {
 
 	useEffect(() => {
 		if (!loading && user && userData?.role === "student") {
-			navigate("/dashboard")
+			navigate("/sprints")
 		}
 		if (!loading && user && userData?.role === "professor") {
 			navigate("/teams")
@@ -52,7 +52,6 @@ export default function Login() {
 
 		try {
 			await signInWithEmailAndPassword(auth, formData.email, formData.password)
-			navigate("/dashboard")
 		} catch (error) {
 			if (error instanceof FirebaseError) {
 				const errorMessage = getFirebaseErrorMessage(error.code)
