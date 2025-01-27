@@ -5,7 +5,7 @@ const PublicRoute = () => {
   const { user, userData, loading } = useAuth();
 
   if (loading) {
-    return <div>Loading...</div>; // Or a loading spinner
+    return <div>Loading...</div>;
   }
 
   if (user) {
