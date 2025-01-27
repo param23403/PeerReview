@@ -22,6 +22,7 @@ import Teams from "./pages/professor/Teams";
 import TeamPage from "./pages/professor/TeamPage";
 import ManageStudents from "./pages/professor/ManageStudents";
 import SprintReviews from "./pages/student/SprintReviews";
+import PublicRoute from "./components/PublicRoute";
 
 const queryClient = new QueryClient();
 
@@ -30,20 +31,25 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       {
-        path: "/",
-        element: <Landing />,
-      },
-      {
-        path: "/login",
-        element: <Login />,
-      },
-      {
-        path: "/signup-student",
-        element: <SignupStudent />,
-      },
-      {
-        path: "/signup-professor",
-        element: <ProfessorSignUp />,
+        element: <PublicRoute />,
+        children: [
+          {
+            path: "/",
+            element: <Landing />,
+          },
+          {
+            path: "/login",
+            element: <Login />,
+          },
+          {
+            path: "/signup-student",
+            element: <SignupStudent />,
+          },
+          {
+            path: "/signup-professor",
+            element: <ProfessorSignUp />,
+          },
+        ],
       },
       {
         element: <StudentProtectedRoute />,
