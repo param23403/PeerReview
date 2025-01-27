@@ -113,11 +113,6 @@ const addProfessorToFirestore = async (
       createdAt: new Date(),
     });
 
-    await db.doc(`professors/${uid}`).update({
-      joinedAt: new Date(),
-      active: true,
-    });
-
     res
       .status(201)
       .json({ message: "Professor data successfully added to Firestore" });
