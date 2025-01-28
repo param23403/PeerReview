@@ -7,9 +7,7 @@ const PublicRoute = () => {
   if (loading) {
     return <div>Loading...</div>;
   }
-
   if (user) {
-    console.log("here");
     if (userData?.role === "student") {
       return <Navigate to="/sprints" replace />;
     } else if (userData?.role === "professor") {

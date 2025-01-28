@@ -7,7 +7,9 @@ const StudentProtectedRoute = () => {
   if (loading) {
     return <div>Loading...</div>;
   }
-
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
   if (user) {
     if (userData?.role === "professor") {
       return <Navigate to="/teams" replace />;
