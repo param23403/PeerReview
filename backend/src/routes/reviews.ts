@@ -3,72 +3,116 @@ import { db } from "../../netlify/functions/firebase";
 
 const router = express.Router();
 
-const getReviewsByReviewerAndSprint = async (req: Request, res: Response): Promise<void> => {
-  const { reviewerId, sprintId } = req.params;
+const fetchStudentData = async (
+  studentIds: string[]
+): Promise<Map<string, any>> => {
+  const batchSize = 30; // Firestore's `in` query limit
+  const studentData = new Map();
 
-  if (!reviewerId || !sprintId) {
-    res.status(400).json({ message: "Missing reviewerId or sprintId parameter" });
-    return;
-  }
+  for (let i = 0; i < studentIds.length; i += batchSize) {
+    const batchIds = studentIds.slice(i, i + batchSize);
 
-  try {
-    // Fetch the student to get their teamId
-    const studentSnapshot = await db
+    const studentsSnapshot = await db
       .collection("students")
-      .where("computingId", "==", reviewerId)
+      .where("__name__", "in", batchIds)
       .get();
 
-    if (studentSnapshot.empty) {
-      res.status(404).json({ message: "Reviewer not found" });
+    studentsSnapshot.docs.forEach((doc) => {
+      studentData.set(doc.id, doc.data());
+    });
+  }
+
+  return studentData;
+};
+
+const getReviews = async (req: Request, res: Response): Promise<void> => {
+  const {
+    search = "",
+    sprintId = "all",
+    redFlagsOnly = false,
+    page = 1,
+    limit = 20,
+  } = req.query;
+
+  const searchTerm = search.toString().toLowerCase();
+  const pageNumber = parseInt(page.toString(), 10);
+  const pageSize = parseInt(limit.toString(), 10);
+
+  try {
+    let query: FirebaseFirestore.Query<FirebaseFirestore.DocumentData> =
+      db.collection("reviews");
+
+    if (sprintId && sprintId !== "all") {
+      query = query.where("sprintId", "==", sprintId);
+    }
+
+    if (redFlagsOnly && redFlagsOnly === "true") {
+      query = query.where("redFlag", "==", true);
+    }
+
+    const snapshot = await query.get();
+
+    if (snapshot.empty) {
+      res.status(200).json({
+        reviews: [],
+        hasNextPage: false,
+        total: 0,
+      });
       return;
     }
 
-    const studentData = studentSnapshot.docs[0].data();
-    const teamId = studentData.team;
+    const reviews = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
-    // Fetch students from the same teamId
-    const teamStudentsSnapshot = await db
-      .collection("students")
-      .where("team", "==", teamId)
-      .get();
+    const studentIds = [
+      ...new Set(
+        reviews.flatMap((review: any) => [
+          review.reviewerId,
+          review.reviewedTeammateId,
+        ])
+      ),
+    ];
 
-    const students = teamStudentsSnapshot.docs.map(doc => doc.data());
+    const studentData = await fetchStudentData(studentIds);
 
-    // Filter out the reviewer themselves
-    const teammates = students.filter((student: any) => student.computingId !== reviewerId);
+    const enrichedReviews = reviews.map((review: any) => ({
+      ...review,
+      reviewerName: studentData.get(review.reviewerId)?.name || "Unknown",
+      revieweeName:
+        studentData.get(review.reviewedTeammateId)?.name || "Unknown",
+      reviewerComputingId:
+        studentData.get(review.reviewerId)?.computingId || "Unknown",
+      revieweeComputingId:
+        studentData.get(review.reviewedTeammateId)?.computingId || "Unknown",
+      team: studentData.get(review.reviewerId)?.team || "Unassigned",
+    }));
 
-    // Fetch existing reviews for reviewer and sprint
-    const reviewsSnapshot = await db
-      .collection("reviews")
-      .where("reviewerId", "==", reviewerId)
-      .where("sprintId", "==", sprintId)
-      .get();
+    const filteredReviews = enrichedReviews.filter(
+      (review) =>
+        review.revieweeName.toLowerCase().includes(searchTerm) ||
+        review.revieweeComputingId.toLowerCase().includes(searchTerm)
+    );
 
-    const existingReviews = reviewsSnapshot.docs.map(doc => doc.data());
+    const total = filteredReviews.length;
+    const paginatedReviews = filteredReviews.slice(
+      (pageNumber - 1) * pageSize,
+      pageNumber * pageSize
+    );
+    const hasNextPage = pageNumber * pageSize < total;
 
-    // Combine teammates with review + completion status
-    const reviews = teammates.map((teammate: any) => {
-      const reviewCompleted = existingReviews.some(
-        (review) =>
-          review.reviewedTeammateId === teammate.computingId &&
-          review.sprintId === sprintId
-      );
-
-      return {
-        reviewedTeammateId: teammate.computingId,
-        reviewedTeammateName: teammate.name,
-        sprintId,
-        reviewCompleted,
-      };
+    res.status(200).json({
+      reviews: paginatedReviews,
+      hasNextPage,
+      total,
     });
-
-    res.status(200).json(reviews);
   } catch (error) {
-    console.error("Error fetching team or reviews:", error);
-    res.status(500).json({ message: "Failed to fetch team or reviews" });
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({ message: "Failed to fetch reviews" });
   }
 };
 
-router.get("/getReviews/:reviewerId/:sprintId", getReviewsByReviewerAndSprint);
+router.get("/search", getReviews);
 
 export default router;

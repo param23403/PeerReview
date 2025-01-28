@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 
-const PublicRoute = () => {
+const ProfessorProtectedRoute = () => {
   const { user, userData, loading } = useAuth();
 
   if (loading) {
@@ -17,4 +17,4 @@ const PublicRoute = () => {
   return <Outlet />;
 };
 
-export default PublicRoute;
+export default ProfessorProtectedRoute;

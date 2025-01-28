@@ -23,6 +23,7 @@ import TeamPage from "./pages/professor/TeamPage";
 import ManageStudents from "./pages/professor/ManageStudents";
 import SprintReviews from "./pages/student/SprintReviews";
 import PublicRoute from "./components/PublicRoute";
+import Reviews from "./pages/professor/Reviews";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,10 @@ const router = createBrowserRouter([
           {
             path: "/students",
             element: <Students />,
+          },
+          {
+            path: "/reviews",
+            element: <Reviews />,
           },
           {
             path: "/teams",
