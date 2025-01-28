@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "../../components/ui/card";
 import { CheckCircle, XCircle, ChevronRight, Lock } from "lucide-react";
-import { API_BASE_URL } from "../../constants";
+import { useAuth } from "../../auth/useAuth";
 
 interface Sprint {
   id: string;
-  sprintNumber: number;
   name: string;
   sprintDueDate: Date;
   reviewDueDate: Date;
@@ -22,7 +21,15 @@ const getSprintStatus = (sprint: Sprint) => {
   return { isPastSprintDueDate, isReviewOpen };
 };
 
-function SprintCard({ sprint, isPastSprintDueDate, isReviewOpen }: { sprint: Sprint; isPastSprintDueDate: boolean; isReviewOpen: boolean; }) {
+function SprintCard({
+  sprint,
+  isPastSprintDueDate = false,
+  isReviewOpen = false,
+}: {
+  sprint: Sprint;
+  isPastSprintDueDate?: boolean;
+  isReviewOpen?: boolean;
+}) {
   const statusIcon = () => {
     if (!isReviewOpen) {
       return <Lock className="text-gray-500 w-6 h-6" />;
@@ -33,10 +40,8 @@ function SprintCard({ sprint, isPastSprintDueDate, isReviewOpen }: { sprint: Spr
 
     return (
       <>
-        <Icon className={`w-6 h-6 ${isComplete ? "text-green-500" : "text-red-500"}`}/>
-        <span className="mr-2">
-          {isComplete ? "Complete" : "Incomplete"}
-        </span>
+        <Icon className={`w-6 h-6 ${isComplete ? "text-green-500" : "text-red-500"}`} />
+        <span className="mr-2">{isComplete ? "Complete" : "Incomplete"}</span>
       </>
     );
   };
@@ -57,19 +62,19 @@ function SprintCard({ sprint, isPastSprintDueDate, isReviewOpen }: { sprint: Spr
     <Card>
       <CardContent className="p-4 flex justify-between items-center">
         <div className="flex-grow">
-          <h2 className="text-lg font-semibold">Sprint {sprint.sprintNumber}: {sprint.name}</h2>
+          <h2 className="text-lg font-semibold">
+            Sprint {sprint.id}: {sprint.name || "Unnamed Sprint"}
+          </h2>
           <p className="text-sm text-gray-500">{statusLabel()}</p>
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             {statusIcon()}
             <span className="text-base text-gray-500">
-              {sprint.completedReviews}/{sprint.totalReviews}
+              {sprint.completedReviews ?? 0}/{sprint.totalReviews ?? 0}
             </span>
           </div>
-          {isReviewOpen && (
-            <ChevronRight className="text-gray-400 w-6 h-6" />
-          )}
+          {isReviewOpen && <ChevronRight className="text-gray-400 w-6 h-6" />}
         </div>
       </CardContent>
     </Card>
@@ -77,51 +82,80 @@ function SprintCard({ sprint, isPastSprintDueDate, isReviewOpen }: { sprint: Spr
 }
 
 export default function StudentSprints() {
+  const { userData, loading: authLoading } = useAuth();
   const [sprints, setSprints] = useState<Sprint[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchSprints = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/sprints/getSprints`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch sprints");
-        }
-        const data = await response.json();
-        setSprints(
-          data.map((sprint: any) => ({
-            ...sprint,
-            sprintDueDate: new Date(sprint.sprintDueDate._seconds * 1000),
-            reviewDueDate: new Date(sprint.reviewDueDate._seconds * 1000),
+    const studentId = userData?.studentId;
+    if (!authLoading && studentId) {
+      const fetchSprints = async () => {
+        try {
+          const response = await fetch(
+            `${import.meta.env.VITE_BACKEND_URL}/sprints/getStudentSprints/${studentId}`
+          );
 
-            // TODO: Replace with actual number of completed reviews by student for specific sprint
-            completedReviews: Math.floor(Math.random() * (7)),
-            totalReviews: 6
-          }))
-        );        
-      } catch (err: any) {
-        console.error("Error:", err);
-        setError("Failed to load sprints. Please retry.");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchSprints();
-  }, []);
+          if (!response.ok) {
+            throw new Error("Failed to fetch sprints");
+          }
+
+          const sprintsData = await response.json();
+
+          if (Array.isArray(sprintsData)) {
+            setSprints(
+              sprintsData.map((sprint: any) => ({
+                id: sprint.id || "",
+                name: sprint.name || "Unnamed Sprint",
+                sprintDueDate: new Date(sprint.sprintDueDate?._seconds * 1000 || Date.now()),
+                reviewDueDate: new Date(sprint.reviewDueDate?._seconds * 1000 || Date.now()),
+                completedReviews: sprint.completedReviews ?? 0,
+                totalReviews: sprint.totalReviews ?? 0,
+              }))
+            );
+          } else {
+            throw new Error("Invalid sprint data format");
+          }
+        } catch (err: any) {
+          console.error("Error:", err);
+          setError("Failed to load sprints. Please retry.");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchSprints();
+    }
+  }, [authLoading, userData]);
+
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading authentication...</p>
+      </div>
+    );
+  }
 
   if (loading) {
-    return <p>Loading sprints...</p>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>Loading sprints...</p>
+      </div>
+    );
   }
 
   if (error) {
-    return <p className="text-red-500">{error}</p>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p>{error}</p>
+      </div>
+    );
   }
 
   return (
     <div className="container mx-auto p-4 flex justify-center">
       <div className="w-full max-w-3xl">
-        <h1 className="text-2xl font-bold mb-4 text-center">Sprint Reviews</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center">Sprints</h1>
         <div className="space-y-8">
           {sprints.map((sprint) => {
             const { isPastSprintDueDate, isReviewOpen } = getSprintStatus(sprint);
@@ -132,7 +166,7 @@ export default function StudentSprints() {
                 state={{ sprint }}
                 key={sprint.id}
                 className="block transition-shadow duration-200 hover:shadow-lg"
-                aria-label={`View details for Sprint ${sprint.sprintNumber}`}
+                aria-label={`View details for Sprint ${sprint.id}`}
               >
                 <SprintCard sprint={sprint} isPastSprintDueDate={isPastSprintDueDate} isReviewOpen={isReviewOpen} />
               </Link>

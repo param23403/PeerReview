@@ -1,18 +1,20 @@
-import { Outlet, useNavigate } from "react-router-dom"
-import { useAuth } from "../auth/useAuth"
-import { useEffect } from "react"
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../auth/useAuth";
 
 const StudentProtectedRoute = () => {
-	const { user, userData, loading } = useAuth()
-	const navigate = useNavigate()
+  const { user, userData, loading } = useAuth();
 
-	useEffect(() => {
-		if (!loading && (!user || userData?.role !== "student")) {
-			navigate("/login")
-		}
-	}, [user, userData])
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
-	return <Outlet />
-}
+  if (user) {
+    if (userData?.role === "professor") {
+      return <Navigate to="/teams" replace />;
+    }
+  }
 
-export default StudentProtectedRoute
+  return <Outlet />;
+};
+
+export default StudentProtectedRoute;

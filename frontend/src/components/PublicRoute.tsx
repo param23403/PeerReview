@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/useAuth";
 
-const ProfessorProtectedRoute = () => {
+const PublicRoute = () => {
   const { user, userData, loading } = useAuth();
 
   if (loading) {
@@ -9,12 +9,15 @@ const ProfessorProtectedRoute = () => {
   }
 
   if (user) {
+    console.log("here");
     if (userData?.role === "student") {
       return <Navigate to="/sprints" replace />;
+    } else if (userData?.role === "professor") {
+      return <Navigate to="/teams" replace />;
     }
   }
 
   return <Outlet />;
 };
 
-export default ProfessorProtectedRoute;
+export default PublicRoute;
