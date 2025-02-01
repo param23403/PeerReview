@@ -6,9 +6,11 @@ const router = express.Router();
 const getSprints = async (req: Request, res: Response): Promise<void> => {
   try {
     const snapshot = await db.collection("sprints").get();
-
     const sprints = snapshot.docs
-      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
       .sort((a, b) => a.id.localeCompare(b.id));
 
     res.status(200).json(sprints);
@@ -43,7 +45,10 @@ const getSprint = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-const getStudentSprints = async (req: Request, res: Response): Promise<void> => {
+const getStudentSprints = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { reviewerId } = req.params;
 
   if (!reviewerId) {
@@ -54,9 +59,9 @@ const getStudentSprints = async (req: Request, res: Response): Promise<void> => 
   try {
     // Fetch the student document directly by its id
     const studentSnapshot = await db
-    .collection("students")
-    .where("computingId", "==", reviewerId)
-    .get();
+      .collection("students")
+      .where("computingId", "==", reviewerId)
+      .get();
 
     if (studentSnapshot.empty) {
       res.status(404).json({ message: "Student not found" });
