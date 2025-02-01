@@ -113,6 +113,105 @@ const getReviews = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+const getReviewsByReviewerAndSprint = async (req: Request, res: Response): Promise<void> => {
+  const { reviewerId, sprintId } = req.params;
+
+  if (!reviewerId || !sprintId) {
+    res.status(400).json({ message: "Missing reviewerId or sprintId parameter" });
+    return;
+  }
+
+  try {
+    // Fetch the student to get their teamId
+    const studentSnapshot = await db
+      .collection("students")
+      .where("computingId", "==", reviewerId)
+      .get();
+
+    if (studentSnapshot.empty) {
+      res.status(404).json({ message: "Reviewer not found" });
+      return;
+    }
+
+    const studentData = studentSnapshot.docs[0].data();
+    const teamId = studentData.team;
+
+    // Fetch students from the same teamId
+    const teamStudentsSnapshot = await db
+      .collection("students")
+      .where("team", "==", teamId)
+      .get();
+
+    const students = teamStudentsSnapshot.docs.map(doc => doc.data());
+
+    // Filter out the reviewer themselves
+    const teammates = students.filter((student: any) => student.computingId !== reviewerId);
+
+    // Fetch existing reviews for reviewer and sprint
+    const reviewsSnapshot = await db
+      .collection("reviews")
+      .where("reviewerId", "==", reviewerId)
+      .where("sprintId", "==", sprintId)
+      .get();
+
+    const existingReviews = reviewsSnapshot.docs.map(doc => doc.data());
+
+    // Combine teammates with review + completion status
+    const reviews = teammates.map((teammate: any) => {
+      const reviewCompleted = existingReviews.some(
+        (review) =>
+          review.reviewedTeammateId === teammate.computingId &&
+          review.sprintId === sprintId
+      );
+
+      return {
+        reviewerId: reviewerId,
+        reviewedTeammateId: teammate.computingId,
+        reviewedTeammateName: teammate.name,
+        sprintId,
+        reviewCompleted,
+      };
+    });
+
+    res.status(200).json(reviews);
+  } catch (error) {
+    console.error("Error fetching team or reviews:", error);
+    res.status(500).json({ message: "Failed to fetch team or reviews" });
+  }
+};
+
+const submitReview = async (req: Request, res: Response): Promise<void> => {
+  const { reviewerId, sprintId, reviewedTeammateId, reviewCompleted, ...extraData } = req.body;
+
+  if (!reviewerId || !sprintId || !reviewedTeammateId ) {
+    res.status(400).json({ message: "Missing required fields" });
+    return;
+  }
+
+  try {
+    const reviewRef = db.collection("reviews").doc();
+    const reviewData = {
+      reviewerId,
+      sprintId,
+      reviewedTeammateId,
+      reviewCompleted: reviewCompleted ?? false,
+      createdAt: new Date().toISOString(),
+      ...extraData,
+    };
+
+    await reviewRef.set(reviewData);
+
+    res.status(201).json({ message: "Review submitted successfully", reviewId: reviewRef.id, review: reviewData });
+  } catch (error) {
+    console.error("Error submitting review:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+router.get("/getReviews/:reviewerId/:sprintId", getReviewsByReviewerAndSprint);
+
+router.post("/submitReview", submitReview);
+
 router.get("/search", getReviews);
 
 export default router;

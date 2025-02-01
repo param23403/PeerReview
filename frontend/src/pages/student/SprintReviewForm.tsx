@@ -10,7 +10,13 @@ import { ArrowLeft } from "lucide-react"
 import { Textarea } from "../../components/ui/textarea"
 import { Checkbox } from "../../components/ui/checkbox"
 
-const options = ["Never", "Rarely", "Sometimes", "Usually", "Always"];
+const options = [
+  { label: "Never", value: "1" },
+  { label: "Rarely", value: "2" },
+  { label: "Sometimes", value: "3" },
+  { label: "Usual", value: "4" },
+  { label: "Always", value: "5" },
+];
 
 export default function SprintReviewForm() {
 
@@ -21,60 +27,102 @@ export default function SprintReviewForm() {
   const [reviewSubmitted, setReviewSubmitted] = useState(false); 
 
   interface FormData {
-    hasKeptUpWithResponsibilities: string;
-    hasHelpedTeamMembers: string;
-    hasCommunicatedEffectively: string;
+    keptUpWithResponsibilities: string;
+    helpedTeamMembers: string;
+    communicatedEffectively: string;
     ideasTakenSeriously: string;
-    hasPutInAppropriateTime: string;
+    putInAppropriateTime: string;
     compatibility: string;
     overallEvaluationScore: string;
-    improvementArea: string;
-    strengthArea: string;
+    improvementFeedback?: string;
+    strengthFeedback?: string;
+    isFlagged: boolean;
   }
   
   const [formData, setFormData] = useState<FormData>({
-    hasKeptUpWithResponsibilities: '',
-    hasHelpedTeamMembers: '',
-    hasCommunicatedEffectively: '',
+    keptUpWithResponsibilities: '',
+    helpedTeamMembers: '',
+    communicatedEffectively: '',
     ideasTakenSeriously: '',
-    hasPutInAppropriateTime: '',
+    putInAppropriateTime: '',
     compatibility: '',
     overallEvaluationScore: '',
-    improvementArea: '',
-    strengthArea: '',
+    improvementFeedback: '',
+    strengthFeedback: '',
+    isFlagged: false
   });
 
   const handleBack = () => {
     navigate(`/sprints/${review.sprintId}/reviews`, { state: { sprint }});
   };
 
-  const handleInputChange = (name: string, value: string) => {
+  const handleInputChange = (name: string, value: string | boolean) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (Object.values(formData).includes('')) {
+  
+    const validationFields: Omit<FormData, 'improvementFeedback' | 'strengthFeedback'> = {
+      keptUpWithResponsibilities: formData.keptUpWithResponsibilities,
+      helpedTeamMembers: formData.helpedTeamMembers,
+      communicatedEffectively: formData.communicatedEffectively,
+      ideasTakenSeriously: formData.ideasTakenSeriously,
+      putInAppropriateTime: formData.putInAppropriateTime,
+      compatibility: formData.compatibility,
+      overallEvaluationScore: formData.overallEvaluationScore,
+      isFlagged: formData.isFlagged
+    };
+  
+    if (Object.values(validationFields).includes('')) {
       toast({
         title: "Error",
-        description: "Please answer all questions before submitting.",
+        description: "Please answer all required questions before submitting.",
         variant: "destructive",
         duration: 3000,
       });
       return;
     }
-    setReviewSubmitted(true);
-    toast({
-      title: "Success",
-      description: `Review for ${review.reviewedTeammateName} submitted successfully!`,
-      variant: "success",
-      duration: 3000,
-    });
-    console.log("Submitted Data:", formData);
-  }
+  
+    const reviewData = {
+      reviewerId: review.reviewerId,
+      sprintId: review.sprintId,
+      reviewedTeammateId: review.reviewedTeammateId,
+      reviewCompleted: true,
+      ...formData, 
+    };
+  
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/reviews/submitReview`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reviewData),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to submit review");
+      }
+  
+      const responseData = await response.json();
+  
+      console.log("Submitted Data:", responseData);
+      setReviewSubmitted(true);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit review. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+      console.error("Submission error:", error);
+    }
+  };  
+    
 
   if (review.reviewCompleted) {
     return (
@@ -152,20 +200,20 @@ export default function SprintReviewForm() {
                 Has this person kept up with their role responsibilities? (Scrum Master, DevOps, Testing, Reqs)
               </Label>
               <RadioGroup
-                value={formData.hasKeptUpWithResponsibilities}
+                value={formData.keptUpWithResponsibilities}
                 onValueChange={(value) =>
-                  handleInputChange("hasKeptUpWithResponsibilities", value)
+                  handleInputChange("keptUpWithResponsibilities", value)
                 }
               >
                 <div className="flex justify-between space-x-4">
                   {options.map((option) => (
-                    <div key={option} className="flex flex-col items-center w-full">
-                      <RadioGroupItem value={option} id={`hasKeptUpWithResponsibilities-${option}`} />
+                    <div key={option.label} className="flex flex-col items-center w-full">
+                      <RadioGroupItem value={option.value} id={`keptUpWithResponsibilities-${option}`} />
                       <Label
-                        htmlFor={`hasKeptUpWithResponsibilities-${option}`}
+                        htmlFor={`keptUpWithResponsibilities-${option}`}
                         className="mt-1 text-center"
                       >
-                        {option}
+                        {option.label}
                       </Label>
                     </div>
                   ))}
@@ -179,20 +227,20 @@ export default function SprintReviewForm() {
                 Has this person helped team members when appropriate?
               </Label>
               <RadioGroup
-                value={formData.hasHelpedTeamMembers}
+                value={formData.helpedTeamMembers}
                 onValueChange={(value) =>
-                  handleInputChange("hasHelpedTeamMembers", value)
+                  handleInputChange("helpedTeamMembers", value)
                 }
               >
                 <div className="flex justify-between space-x-4">
                   {options.map((option) => (
-                    <div key={option} className="flex flex-col items-center w-full">
-                      <RadioGroupItem value={option} id={`hasHelpedTeamMembers-${option}`} />
+                    <div key={option.label} className="flex flex-col items-center w-full">
+                      <RadioGroupItem value={option.value} id={`helpedTeamMembers-${option}`} />
                       <Label
-                        htmlFor={`hasHelpedTeamMembers-${option}`}
+                        htmlFor={`helpedTeamMembers-${option}`}
                         className="mt-1 text-center"
                       >
-                        {option}
+                        {option.label}
                       </Label>
                     </div>
                   ))}
@@ -206,20 +254,20 @@ export default function SprintReviewForm() {
                 Has this person been effective at communicating with the team?
               </Label>
               <RadioGroup
-                value={formData.hasCommunicatedEffectively}
+                value={formData.communicatedEffectively}
                 onValueChange={(value) =>
-                  handleInputChange("hasCommunicatedEffectively", value)
+                  handleInputChange("communicatedEffectively", value)
                 }
               >
                 <div className="flex justify-between space-x-4">
                   {options.map((option) => (
-                    <div key={option} className="flex flex-col items-center w-full">
-                      <RadioGroupItem value={option} id={`hasCommunicatedEffectively-${option}`} />
+                    <div key={option.label} className="flex flex-col items-center w-full">
+                      <RadioGroupItem value={option.value} id={`communicatedEffectively-${option}`} />
                       <Label
-                        htmlFor={`hasCommunicatedEffectively-${option}`}
+                        htmlFor={`communicatedEffectively-${option}`}
                         className="mt-1 text-center"
                       >
-                        {option}
+                        {option.label}
                       </Label>
                     </div>
                   ))}
@@ -240,13 +288,13 @@ export default function SprintReviewForm() {
               >
                 <div className="flex justify-between space-x-4">
                   {options.map((option) => (
-                    <div key={option} className="flex flex-col items-center w-full">
-                      <RadioGroupItem value={option} id={`ideasTakenSeriously-${option}`} />
+                    <div key={option.label} className="flex flex-col items-center w-full">
+                      <RadioGroupItem value={option.value} id={`ideasTakenSeriously-${option}`} />
                       <Label
                         htmlFor={`ideasTakenSeriously-${option}`}
                         className="mt-1 text-center"
                       >
-                        {option}
+                        {option.label}
                       </Label>
                     </div>
                   ))}
@@ -260,20 +308,20 @@ export default function SprintReviewForm() {
                 Has this person put in the appropriate time for the project?
               </Label>
               <RadioGroup
-                value={formData.hasPutInAppropriateTime}
+                value={formData.putInAppropriateTime}
                 onValueChange={(value) =>
-                  handleInputChange("hasPutInAppropriateTime", value)
+                  handleInputChange("putInAppropriateTime", value)
                 }
               >
                 <div className="flex justify-between space-x-4">
                   {options.map((option) => (
-                    <div key={option} className="flex flex-col items-center w-full">
-                      <RadioGroupItem value={option} id={`hasPutInAppropriateTime-${option}`} />
+                    <div key={option.label} className="flex flex-col items-center w-full">
+                      <RadioGroupItem value={option.value} id={`putInAppropriateTime-${option}`} />
                       <Label
-                        htmlFor={`hasPutInAppropriateTime-${option}`}
+                        htmlFor={`putInAppropriateTime-${option}`}
                         className="mt-1 text-center"
                       >
-                        {option}
+                        {option.label}
                       </Label>
                     </div>
                   ))}
@@ -309,7 +357,7 @@ export default function SprintReviewForm() {
             </RadioGroup>
 
             {/* Overall Evaluation Score */}
-            <h3 className="text-lg font-bold">Overall Evaluation Score</h3>
+            <h3 className="text-lg font-bold">Overall Score</h3>
             <RadioGroup
               value={formData.overallEvaluationScore}
               onValueChange={(value) =>
@@ -336,43 +384,48 @@ export default function SprintReviewForm() {
             </RadioGroup>
 
             {/* Improvement Area */}
+            <h3 className="text-lg font-bold">Feedback</h3>
             <div className="space-y-2">
-              <Label htmlFor="improvementArea" className="text-sm font-medium">
+              <Label htmlFor="improvementFeedback" className="text-sm font-medium">
                 What is something you would like to see this student improve on?
               </Label>
               <Textarea
-                id="improvementArea"
-                name="improvementArea"
+                id="improvementFeedback"
+                name="improvementFeedback"
                 placeholder="Optional feedback (max 250 characters)"
                 maxLength={250}
-                value={formData.improvementArea || ''}
-                onChange={(e) => handleInputChange("improvementArea", e.target.value)}
+                value={formData.improvementFeedback || ''}
+                onChange={(e) => handleInputChange("improvementFeedback", e.target.value)}
                 className="w-full"
               />
             </div>
 
             {/* Strength Area */}
             <div className="space-y-2">
-              <Label htmlFor="strengthArea" className="text-sm font-medium">
+              <Label htmlFor="strengthFeedback" className="text-sm font-medium">
                 What is something this student has done particularly well on?
               </Label>
               <Textarea
-                id="strengthArea"
-                name="strengthArea"
+                id="strengthFeedback"
+                name="strengthFeedback"
                 placeholder="Optional feedback (max 250 characters)"
                 maxLength={250}
-                value={formData.strengthArea || ''}
-                onChange={(e) => handleInputChange("strengthArea", e.target.value)}
+                value={formData.strengthFeedback || ''}
+                onChange={(e) => handleInputChange("strengthFeedback", e.target.value)}
                 className="w-full"
               />
             </div>     
 
             {/* Flag Review */}
             <div className="space-y-2">
-              <Label htmlFor="strengthArea" className="text-sm font-medium">
+              <Label htmlFor="isFlagged" className="text-sm font-medium">
                   Would you like to flag this review for the professor? {" "} 
               </Label>
-              <Checkbox id="flag" />
+              <Checkbox 
+                id="flag" 
+                checked={formData.isFlagged} 
+                onCheckedChange={(checked) => handleInputChange("isFlagged", checked)}
+              />
             </div>
 
             <Button type="submit" className="w-full bg-primary text-primary-foreground">

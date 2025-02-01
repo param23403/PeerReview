@@ -65,7 +65,7 @@ const router = createBrowserRouter([
             element: <SprintReviews />,
           },
           {
-            path: "/review/:reviewId",
+            path: "/review/:reviewerId/:reviewedTeammateId",
             element: <SprintReviewForm />,
           },
         ],

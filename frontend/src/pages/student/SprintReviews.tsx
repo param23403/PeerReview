@@ -89,7 +89,7 @@ export default function SprintReviews() {
           {reviews.map((review) => {
             return (
               <Link
-                to={`/review/${review.id}`}
+                to={`/review/${review.reviewerId}/${review.reviewedTeammateId}`}
                 state={{ review, sprint }}
                 key={`${review.reviewedTeammateId}-${sprint.id}`}
                 className="block hover:shadow-lg transition-shadow duration-200"
