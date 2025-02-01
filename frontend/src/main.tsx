@@ -7,24 +7,26 @@ import "./index.css";
 
 import Layout from "./components/Layout";
 
-import Login from "./pages/Login"
-import Landing from "./pages/Landing"
-import SignupStudent from "./pages/Signup"
-import StudentSprints from "./pages/student/StudentSprints"
-import { AuthProvider } from "./auth/AuthContext"
-import StudentProtectedRoute from "./components/StudentProtectedRoute"
-import ProfessorProtectedRoute from "./components/ProfessorProtectedRoute"
-import ProfessorDashboard from "./pages/professor/ProfessorDashboard"
-import TeamCreation from "./pages/professor/TeamCreation"
-import Students from "./pages/professor/Students"
-import Teams from "./pages/professor/Teams"
-import TeamPage from "./pages/professor/TeamPage"
-import ManageStudents from "./pages/professor/ManageStudents"
-import SprintReviews from "./pages/student/SprintReviews"
-import SprintReviewForm from "./pages/student/SprintReviewForm"
+import Login from "./pages/Login";
+import Landing from "./pages/Landing";
+import SignupStudent from "./pages/Signup";
+import StudentSprints from "./pages/student/StudentSprints";
+import { AuthProvider } from "./auth/AuthContext";
+import StudentProtectedRoute from "./components/StudentProtectedRoute";
+import ProfessorProtectedRoute from "./components/ProfessorProtectedRoute";
+import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
+import TeamCreation from "./pages/professor/TeamCreation";
+import Students from "./pages/professor/Students";
+import Teams from "./pages/professor/Teams";
+import TeamPage from "./pages/professor/TeamPage";
+import ManageStudents from "./pages/professor/ManageStudents";
+import SprintReviews from "./pages/student/SprintReviews";
+import SprintReviewForm from "./pages/student/SprintReviewForm";
 import Reviews from "./pages/professor/Reviews";
 import ProfessorSignUp from "./pages/Professor-signup";
 import PublicRoute from "./components/PublicRoute";
+import ManageSprints from "./pages/professor/ManageSprints";
+import EditSprint from "./pages/professor/EditSprint";
 
 const queryClient = new QueryClient();
 
@@ -100,6 +102,14 @@ const router = createBrowserRouter([
           {
             path: "/manage-students",
             element: <ManageStudents />,
+          },
+          {
+            path: "/settings",
+            element: <ManageSprints />,
+          },
+          {
+            path: "/edit-sprint/:sprintId",
+            element: <EditSprint />,
           },
         ],
       },
