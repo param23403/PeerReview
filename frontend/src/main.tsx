@@ -21,6 +21,7 @@ import Teams from "./pages/professor/Teams"
 import TeamPage from "./pages/professor/TeamPage"
 import ManageStudents from "./pages/professor/ManageStudents"
 import SprintReviews from "./pages/student/SprintReviews"
+import SprintReviewForm from "./pages/student/SprintReviewForm"
 
 const queryClient = new QueryClient()
 
@@ -51,6 +52,10 @@ const router = createBrowserRouter([
 						path: "/sprints/:sprintId/reviews",
 						element: <SprintReviews />,
 					},
+					{
+						path: "/review/:reviewId",
+						element: <SprintReviewForm />
+					}
 				],
 			},
 			{
