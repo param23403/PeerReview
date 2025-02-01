@@ -12,7 +12,6 @@ const getSprints = async (req: Request, res: Response): Promise<void> => {
         ...doc.data(),
       }))
       .sort((a, b) => a.id.localeCompare(b.id));
-
     res.status(200).json(sprints);
   } catch (error) {
     console.error("Error fetching sprints:", error);
@@ -124,8 +123,54 @@ const getStudentSprints = async (
   }
 };
 
+const updateSprint = async (req: Request, res: Response): Promise<void> => {
+  const { name, reviewDueDate, sprintDueDate, sprintId } = req.body;
+  if (!sprintId) {
+    res.status(400).json({ message: "Missing sprint ID in request" });
+    return;
+  }
+
+  if (!name || !reviewDueDate || !sprintDueDate) {
+    res.status(400).json({ message: "Missing required fields" });
+    return;
+  }
+
+  try {
+    const sprintRef = db.collection("sprints").doc(sprintId);
+    const sprintSnap = await sprintRef.get();
+
+    if (!sprintSnap.exists) {
+      res.status(404).json({ message: "Sprint not found" });
+      return;
+    }
+
+    const reviewDueDateTimestamp = new Date(reviewDueDate);
+    const sprintDueDateTimestamp = new Date(sprintDueDate);
+
+    if (reviewDueDateTimestamp <= sprintDueDateTimestamp) {
+      res
+        .status(400)
+        .json({ message: "Review due date must be after sprint due date" });
+      return;
+    }
+
+    await sprintRef.update({
+      name,
+      reviewDueDate: reviewDueDateTimestamp,
+      sprintDueDate: sprintDueDateTimestamp,
+    });
+
+    res.status(200).json({ message: "Sprint updated successfully" });
+  } catch (error) {
+    console.error("Error updating sprint:", error);
+    res.status(500).json({ message: "Failed to update sprint" });
+  }
+};
+
 router.get("/getSprints", getSprints);
 router.get("/getSprint/:sprintId", getSprint);
 router.get("/getStudentSprints/:reviewerId", getStudentSprints);
+
+router.post("/updateSprint", updateSprint);
 
 export default router;
