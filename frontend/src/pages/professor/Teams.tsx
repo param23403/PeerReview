@@ -21,6 +21,7 @@ const Teams = () => {
       return lastPage.length < 20 ? undefined : allPages.length + 1
     },
     initialPageParam: 1,
+    refetchInterval: 5000,
   })
 
   useEffect(() => {

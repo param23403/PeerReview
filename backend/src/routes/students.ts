@@ -6,13 +6,13 @@ const router = express.Router()
 const searchStudents = async (req: Request, res: Response): Promise<void> => {
 	const { search = "", page = 1, limit = 20 } = req.query
 
-	const searchTerm = search.toString().toLowerCase()
+	const searchTerm = search
 	const pageNumber = parseInt(page.toString(), 10)
 	const pageSize = parseInt(limit.toString(), 10)
 
 	try {
 		const studentsRef = db.collection("students")
-		let query = studentsRef
+		let query = studentsRef.orderBy("name").startAt(searchTerm).endAt(searchTerm + "\uf8ff")
 
 		const snapshot = await query.get()
 
@@ -25,14 +25,11 @@ const searchStudents = async (req: Request, res: Response): Promise<void> => {
 			return
 		}
 
-		const filteredStudents = snapshot.docs
-			.map((doc) => ({ id: doc.id, ...doc.data() }))
-			.filter((student: any) => student.name.toLowerCase().includes(searchTerm) || student.computingId.toLowerCase().includes(searchTerm))
+		const filteredStudents = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 
-		const total = filteredStudents.length
-		const paginatedStudents = filteredStudents.slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
-
-		const hasNextPage = pageNumber * pageSize < total
+        const total = filteredStudents.length
+        const paginatedStudents = filteredStudents.slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
+        const hasNextPage = pageNumber * pageSize < total
 
 		res.status(200).json({
 			students: paginatedStudents,
@@ -68,28 +65,35 @@ const getStudent = async (req: Request, res: Response): Promise<void> => {
 }
 
 const addStudent = async (req: Request, res: Response): Promise<void> => {
-    const { team, firstName, lastName, computingID, preferredPronouns, githubID, discordID } = req.body
+    const { team, computingID, lastName, firstName, preferredPronouns, githubID, discordID } = req.body
 
     console.log("Received student data:", req.body)
 
     try {
         const studentsRef = db.collection("students")
         const snapshot = await studentsRef.get()
-        const studentCount = snapshot.size
-        
-        const newStudentID = studentCount
 
-        await studentsRef.doc(newStudentID.toString()).set({
-			id: computingID,
-            name: `${firstName} ${lastName}`,
-            computingID,
-			team,
-			joinedAt: new Date().toISOString(),
-            active: false,
+        await studentsRef.doc(computingID).set({
+            team,
+			computingID,
+			lastName,
+			firstName,
+			preferredPronouns,
             githubID,
             discordID,
-            preferredPronouns,
-        });
+        })
+
+		const teamRef = db.collection("teams").doc(team)
+		const teamDoc = await teamRef.get()
+
+		if (teamDoc.exists) {
+			const currentStudents = teamDoc.data()?.students || []
+			currentStudents.push({ computingID, firstName, lastName })
+
+			await teamRef.update({ students: currentStudents })
+		} else {
+			await teamRef.set({ students: [{ computingID, firstName, lastName }] })
+		}
 
         res.status(201).json({ message: "Student added successfully" })
     } catch (error) {
@@ -111,10 +115,26 @@ const removeStudent = async (req: Request, res: Response): Promise<void> => {
             return
         }
 
-        snapshot.forEach(async (doc) => {
-            await studentsRef.doc(doc.id).delete();
+        const batch = db.batch()
+        let teamID = ""
+
+        snapshot.forEach((doc) => {
+            const studentData = doc.data()
+            teamID = studentData.team
+            batch.delete(studentsRef.doc(doc.id))
         })
 
+        const teamRef = db.collection("teams").doc(teamID)
+		const teamDoc = await teamRef.get()
+
+		if (teamDoc.exists) {
+			const currentStudents = teamDoc.data()?.students || []
+			const updatedStudents = currentStudents.filter((s: any) => s.computingID !== computingID)
+
+			batch.update(teamRef, { students: updatedStudents }) 
+		}
+
+		await batch.commit()
         res.status(200).json({ message: "Student removed successfully" })
     } catch (error) {
         console.error("Error removing student:", error);

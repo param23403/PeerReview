@@ -84,7 +84,7 @@ const Students = () => {
 							{data?.students.map((student: any) => (
 								<TableRow key={student.id}>
 									<TableCell>{student.name}</TableCell>
-									<TableCell>{student.computingId}</TableCell>
+									<TableCell>{student.computingID}</TableCell>
 									<TableCell>{student.team || "Unassigned"}</TableCell>
 									<TableCell>{student.githubID || "N/A"}</TableCell>
 									<TableCell>{student.discordID || "N/A"}</TableCell>

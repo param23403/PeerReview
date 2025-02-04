@@ -50,7 +50,8 @@ const Navbar = () => {
 				{ name: "Teams", href: "/teams" },
 				{ name: "Students", href: "/students" },
 				{ name: "Reviews", href: "/reviews" },
-				{ name: "Settings", href: "/settings" },
+				{ name: "Manage Teams", href: "/team-creation" },
+				{ name: "Sprint Settings", href: "/settings" },
 				{
 					name: "Logout",
 					href: "/",

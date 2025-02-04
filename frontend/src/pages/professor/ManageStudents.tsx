@@ -63,7 +63,7 @@ export default function ManageStudents() {
 	  )
   
 	  setTimeout(() => {
-		navigate("/professor-dashboard")
+		navigate("/teams")
 	  }, 2000)
 	},
 
