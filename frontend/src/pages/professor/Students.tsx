@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Input } from "../../components/ui/input";
 import {
@@ -46,6 +46,7 @@ const Students = () => {
 
   const searchTerm = searchParams.get("search") || "";
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const navigate = useNavigate();
 
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
 
@@ -65,8 +66,9 @@ const Students = () => {
     setSearchParams({ search: value, page: "1" });
   };
 
-  // console.info(data)
-
+  const handleNavigate = (cid: string) => {
+    navigate(`/student/${cid}`);
+  };
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-4 text-primary">Student Search</h1>
@@ -105,7 +107,10 @@ const Students = () => {
             </TableHeader>
             <TableBody>
               {data?.students.map((student: any) => (
-                <TableRow key={student.id}>
+                <TableRow
+                  key={student.id}
+                  onClick={() => handleNavigate(student.computingID)}
+                >
                   <TableCell>{student.name}</TableCell>
                   <TableCell>{student.computingID}</TableCell>
                   <TableCell>{student.team || "Unassigned"}</TableCell>

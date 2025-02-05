@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import {
@@ -13,6 +13,7 @@ import {
 const TeamPage = () => {
   const { teamId } = useParams<{ teamId: string }>();
   const [team, setTeam] = useState<any | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTeamData = async () => {
@@ -28,7 +29,9 @@ const TeamPage = () => {
 
     fetchTeamData();
   }, [teamId]);
-
+  const handleNavigate = (cid: string) => {
+    navigate(`/student/${cid}`);
+  };
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
@@ -50,7 +53,10 @@ const TeamPage = () => {
               </TableHeader>
               <TableBody>
                 {team.students.map((student: any) => (
-                  <TableRow key={student.id}>
+                  <TableRow
+                    key={student.id}
+                    onClick={() => handleNavigate(student.computingID)}
+                  >
                     <TableCell>
                       {student.firstName} {student.lastName}
                     </TableCell>
