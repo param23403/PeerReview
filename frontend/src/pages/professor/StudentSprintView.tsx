@@ -1,7 +1,23 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
+import { useNavigate, useParams } from "react-router-dom";
+import { Button } from "../../components/ui/button";
 import { ReviewGrid } from "../../components/ReviewGrid";
+
+interface SprintReview {
+  reviewerId: string;
+  reviewedTeammateId: string;
+  keptUpWithResponsibilities: string;
+  helpedTeamMembers: string;
+  communicatedEffectively: string;
+  ideasTakenSeriously: string;
+  putInAppropriateTime: string;
+  compatibility: string;
+  overallEvaluationScore: string;
+  improvementFeedback?: string;
+  strengthFeedback?: string;
+  isFlagged: boolean;
+}
 
 export default function () {
   const { computingID, sprintId } = useParams<{ computingID: string; sprintId: string }>();
@@ -9,6 +25,16 @@ export default function () {
   const [studentName, setStudentName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const navigate = useNavigate();
+
+  const handleBackClick = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/", { replace: true });
+    }
+  };
   
   useEffect(() => {
     async function fetchReviews() {
@@ -33,24 +59,18 @@ export default function () {
     fetchReviews();
   }, [computingID, sprintId]);
 
-  interface SprintReview {
-    reviewerId: string;
-    reviewedTeammateId: string;
-    keptUpWithResponsibilities: string;
-    helpedTeamMembers: string;
-    communicatedEffectively: string;
-    ideasTakenSeriously: string;
-    putInAppropriateTime: string;
-    compatibility: string;
-    overallEvaluationScore: string;
-    improvementFeedback?: string;
-    strengthFeedback?: string;
-    isFlagged: boolean;
-  }
+
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4 text-primary">Teams &gt; (Team-No.) &gt; {computingID} &gt; {sprintId} </h1>
+      <div className="flex items-center mb-4">
+        <Button onClick={handleBackClick} className="mr-4">
+          &lt; Back
+        </Button>
+        <h1 className="text-3xl font-bold text-primary">
+          Team Reviews
+        </h1>
+      </div>
 
       <Card className="w-full">
         <CardHeader className="text-center">

@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
@@ -27,6 +27,7 @@ export default function EditSprint() {
   const { loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
@@ -150,8 +151,18 @@ export default function EditSprint() {
     );
   }
 
+  const handleBackClick = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/", { replace: true });
+    }
+  };
   return (
     <div className="max-w-2xl mx-auto p-6">
+      <Button onClick={handleBackClick}>Back</Button>
+      <br />
+      <br />
       <h2 className="text-2xl font-bold mb-6">Edit Sprint {sprintId}</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>

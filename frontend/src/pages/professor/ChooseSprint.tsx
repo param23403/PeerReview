@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../auth/useAuth";
+import { Button } from "../../components/ui/button";
 
 interface Sprint {
   id: string;
@@ -51,7 +52,15 @@ export default function ChooseSprint() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const { computingID } = useParams<{ computingID: string }>();
+  const navigate = useNavigate();
 
+  const handleBackClick = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/", { replace: true });
+    }
+  };
   useEffect(() => {
     if (!authLoading) {
       const fetchSprints = async () => {
@@ -113,6 +122,7 @@ export default function ChooseSprint() {
   return (
     <div className="container mx-auto p-4 flex justify-center">
       <div className="w-full max-w-3xl">
+        <Button onClick={handleBackClick}>Back</Button>
         <h1 className="text-2xl font-bold mb-4 text-center">Select a Sprint</h1>
         <div className="space-y-8">
           {sprints.map((sprint) => {
