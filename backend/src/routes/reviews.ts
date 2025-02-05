@@ -125,7 +125,7 @@ const getReviewsByReviewerAndSprint = async (req: Request, res: Response): Promi
     // Fetch the student to get their teamId
     const studentSnapshot = await db
       .collection("students")
-      .where("computingId", "==", reviewerId)
+      .where("computingID", "==", reviewerId)
       .get();
 
     if (studentSnapshot.empty) {
@@ -145,7 +145,7 @@ const getReviewsByReviewerAndSprint = async (req: Request, res: Response): Promi
     const students = teamStudentsSnapshot.docs.map(doc => doc.data());
 
     // Filter out the reviewer themselves
-    const teammates = students.filter((student: any) => student.computingId !== reviewerId);
+    const teammates = students.filter((student: any) => student.computingID !== reviewerId);
 
     // Fetch existing reviews for reviewer and sprint
     const reviewsSnapshot = await db
@@ -160,13 +160,13 @@ const getReviewsByReviewerAndSprint = async (req: Request, res: Response): Promi
     const reviews = teammates.map((teammate: any) => {
       const reviewCompleted = existingReviews.some(
         (review) =>
-          review.reviewedTeammateId === teammate.computingId &&
+          review.reviewedTeammateId === teammate.computingID &&
           review.sprintId === sprintId
       );
 
       return {
         reviewerId: reviewerId,
-        reviewedTeammateId: teammate.computingId,
+        reviewedTeammateId: teammate.computingID,
         reviewedTeammateName: teammate.name,
         sprintId,
         reviewCompleted,

@@ -59,7 +59,7 @@ const getStudentSprints = async (
     // Fetch the student document directly by its id
     const studentSnapshot = await db
       .collection("students")
-      .where("computingId", "==", reviewerId)
+      .where("computingID", "==", reviewerId)
       .get();
 
     if (studentSnapshot.empty) {
