@@ -5,6 +5,7 @@ const router = express.Router();
 
 const getSprints = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log("here");
     const snapshot = await db.collection("sprints").get();
     const sprints = snapshot.docs
       .map((doc) => ({

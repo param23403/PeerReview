@@ -27,6 +27,7 @@ import ProfessorSignUp from "./pages/Professor-signup";
 import PublicRoute from "./components/PublicRoute";
 import ManageSprints from "./pages/professor/ManageSprints";
 import EditSprint from "./pages/professor/EditSprint";
+import StudentSprintView from "./pages/professor/StudentSprintView";
 
 const queryClient = new QueryClient();
 
@@ -110,6 +111,14 @@ const router = createBrowserRouter([
           {
             path: "/edit-sprint/:sprintId",
             element: <EditSprint />,
+          },
+          {
+            path: "/student/:computingId",
+            element: <StudentSprints />,
+          },
+          {
+            path: "/student/:computingId/:sprintId",
+            element: <StudentSprintView />,
           },
         ],
       },
