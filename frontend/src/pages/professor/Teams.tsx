@@ -31,7 +31,6 @@ const fetchTeams = async ({
       params: { search: searchTerm, page, limit },
     }
   );
-  console.log(response.data);
   return response.data;
 };
 
