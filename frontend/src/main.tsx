@@ -29,6 +29,7 @@ import ManageSprints from "./pages/professor/ManageSprints";
 import EditSprint from "./pages/professor/EditSprint";
 import StudentSprintView from "./pages/professor/StudentSprintView";
 import ChooseSprint from "./pages/professor/ChooseSprint";
+import ReviewView from "./pages/professor/ReviewView";
 
 const queryClient = new QueryClient();
 
@@ -120,6 +121,10 @@ const router = createBrowserRouter([
           {
             path: "/student/:computingID/:sprintId",
             element: <StudentSprintView />,
+          },
+          {
+            path: "/review/:reviewId",
+            element: <ReviewView />,
           },
         ],
       },

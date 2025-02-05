@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { Input } from "../../components/ui/input";
 import {
@@ -70,6 +70,7 @@ const Reviews = () => {
   const redFlags = searchParams.get("redFlags") == "true" ? true : false;
 
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm), 200);
@@ -126,7 +127,9 @@ const Reviews = () => {
       redFlags: value.toString(),
     });
   };
-
+  const handleNavigate = (reviewid: string) => {
+    navigate(`/review/${reviewid}`);
+  };
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-4 text-primary">Review Search</h1>
@@ -198,7 +201,10 @@ const Reviews = () => {
             </TableHeader>
             <TableBody>
               {reviewsData?.reviews.map((review: any) => (
-                <TableRow key={review.id}>
+                <TableRow
+                  key={review.id}
+                  onClick={() => handleNavigate(review.id)}
+                >
                   <TableCell>
                     <strong>
                       {review.revieweeName +
