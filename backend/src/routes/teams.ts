@@ -52,7 +52,6 @@ const saveTeamsAndStudents = async (students: any[]) => {
     });
 
     await batch.commit();
-    console.log("Teams and students successfully saved");
   } catch (error) {
     console.error("Error saving to Firebase:", error);
     throw error;
@@ -76,7 +75,6 @@ const createTeams = async (req: Request, res: Response): Promise<void> => {
     fileStream
       .pipe(csvParser())
       .on("data", (data) => {
-        console.log("Parsing row:", data);
         students.push({
           team: data["Team"].split(" ").join("").split("-").join(""),
           computingID: data["Computing ID"],
@@ -88,11 +86,8 @@ const createTeams = async (req: Request, res: Response): Promise<void> => {
         });
       })
       .on("end", async () => {
-        console.log("Parsed CSV data:", students);
-
         try {
           await saveTeamsAndStudents(students);
-          console.log("Teams and students successfully saved");
           res
             .status(201)
             .json({ message: "Teams and students successfully created" });

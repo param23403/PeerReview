@@ -95,7 +95,6 @@ const addStudent = async (req: Request, res: Response): Promise<void> => {
     discordID,
   } = req.body;
 
-  console.log("Received student data:", req.body);
 
   try {
     const studentsRef = db.collection("students");
@@ -140,7 +139,6 @@ const removeStudent = async (req: Request, res: Response): Promise<void> => {
       .get();
 
     if (snapshot.empty) {
-      console.log("No matching student found.");
       res.status(404).json({ message: "Student not found" });
       return;
     }

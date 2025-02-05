@@ -1,14 +1,20 @@
-import { useState } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
-import { Button } from "../../components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card"
-import { Label } from "../../components/ui/label"
-import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group"
-import { toast } from "../../hooks/use-toast"
-import { Toaster } from "../../components/ui/toaster"
-import { ArrowLeft } from "lucide-react"
-import { Textarea } from "../../components/ui/textarea"
-import { Checkbox } from "../../components/ui/checkbox"
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Button } from "../../components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "../../components/ui/card";
+import { Label } from "../../components/ui/label";
+import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
+import { toast } from "../../hooks/use-toast";
+import { Toaster } from "../../components/ui/toaster";
+import { ArrowLeft } from "lucide-react";
+import { Textarea } from "../../components/ui/textarea";
+import { Checkbox } from "../../components/ui/checkbox";
 
 const options = [
   { label: "Never", value: "1" },
@@ -19,12 +25,11 @@ const options = [
 ];
 
 export default function SprintReviewForm() {
-
   const location = useLocation();
   const navigate = useNavigate();
   const { review, sprint } = location.state || {};
 
-  const [reviewSubmitted, setReviewSubmitted] = useState(false); 
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   interface FormData {
     keptUpWithResponsibilities: string;
@@ -38,35 +43,38 @@ export default function SprintReviewForm() {
     strengthFeedback?: string;
     isFlagged: boolean;
   }
-  
+
   const [formData, setFormData] = useState<FormData>({
-    keptUpWithResponsibilities: '',
-    helpedTeamMembers: '',
-    communicatedEffectively: '',
-    ideasTakenSeriously: '',
-    putInAppropriateTime: '',
-    compatibility: '',
-    overallEvaluationScore: '',
-    improvementFeedback: '',
-    strengthFeedback: '',
-    isFlagged: false
+    keptUpWithResponsibilities: "",
+    helpedTeamMembers: "",
+    communicatedEffectively: "",
+    ideasTakenSeriously: "",
+    putInAppropriateTime: "",
+    compatibility: "",
+    overallEvaluationScore: "",
+    improvementFeedback: "",
+    strengthFeedback: "",
+    isFlagged: false,
   });
 
   const handleBack = () => {
-    navigate(`/sprints/${review.sprintId}/reviews`, { state: { sprint }});
+    navigate(`/sprints/${review.sprintId}/reviews`, { state: { sprint } });
   };
 
   const handleInputChange = (name: string, value: string | boolean) => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
-    const validationFields: Omit<FormData, 'improvementFeedback' | 'strengthFeedback'> = {
+
+    const validationFields: Omit<
+      FormData,
+      "improvementFeedback" | "strengthFeedback"
+    > = {
       keptUpWithResponsibilities: formData.keptUpWithResponsibilities,
       helpedTeamMembers: formData.helpedTeamMembers,
       communicatedEffectively: formData.communicatedEffectively,
@@ -74,10 +82,10 @@ export default function SprintReviewForm() {
       putInAppropriateTime: formData.putInAppropriateTime,
       compatibility: formData.compatibility,
       overallEvaluationScore: formData.overallEvaluationScore,
-      isFlagged: formData.isFlagged
+      isFlagged: formData.isFlagged,
     };
-  
-    if (Object.values(validationFields).includes('')) {
+
+    if (Object.values(validationFields).includes("")) {
       toast({
         title: "Error",
         description: "Please answer all required questions before submitting.",
@@ -86,31 +94,33 @@ export default function SprintReviewForm() {
       });
       return;
     }
-  
+
     const reviewData = {
       reviewerId: review.reviewerId,
       sprintId: review.sprintId,
       reviewedTeammateId: review.reviewedTeammateId,
       reviewCompleted: true,
-      ...formData, 
+      ...formData,
     };
-  
+
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/reviews/submitReview`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(reviewData),
-      });
-  
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/reviews/submitReview`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(reviewData),
+        }
+      );
+
       if (!response.ok) {
         throw new Error("Failed to submit review");
       }
-  
+
       const responseData = await response.json();
-  
-      console.log("Submitted Data:", responseData);
+
       setReviewSubmitted(true);
     } catch (error) {
       toast({
@@ -121,8 +131,7 @@ export default function SprintReviewForm() {
       });
       console.error("Submission error:", error);
     }
-  };  
-    
+  };
 
   if (review.reviewCompleted) {
     return (
@@ -130,15 +139,35 @@ export default function SprintReviewForm() {
         <Card className="w-full max-w-2xl shadow-md border border-muted">
           <CardContent className="flex flex-col items-center justify-center p-6">
             <div className="text-green-500 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-16 w-16"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold mb-2 text-center">Review Submitted</h2>
-            <p className="text-lg mb-4 text-center">A review has successfully been submitted for {review.reviewedTeammateName}.</p>
+            <h2 className="text-2xl font-bold mb-2 text-center">
+              Review Submitted
+            </h2>
+            <p className="text-lg mb-4 text-center">
+              A review has successfully been submitted for{" "}
+              {review.reviewedTeammateName}.
+            </p>
           </CardContent>
           <div className="px-6 pb-6">
-            <Button variant="outline" onClick={handleBack} className="w-full flex items-center justify-center">
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              className="w-full flex items-center justify-center"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Reviews
             </Button>
@@ -154,15 +183,35 @@ export default function SprintReviewForm() {
         <Card className="w-full max-w-2xl shadow-md border border-muted">
           <CardContent className="flex flex-col items-center justify-center p-6">
             <div className="text-green-500 mb-4">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-16 w-16"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold mb-2 text-center">Review Submitted</h2>
-            <p className="text-lg mb-4 text-center">A review has successfully been submitted for {review.reviewedTeammateName}.</p>
+            <h2 className="text-2xl font-bold mb-2 text-center">
+              Review Submitted
+            </h2>
+            <p className="text-lg mb-4 text-center">
+              A review has successfully been submitted for{" "}
+              {review.reviewedTeammateName}.
+            </p>
           </CardContent>
           <div className="px-6 pb-6">
-            <Button variant="outline" onClick={handleBack} className="w-full flex items-center justify-center">
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              className="w-full flex items-center justify-center"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Reviews
             </Button>
@@ -185,9 +234,12 @@ export default function SprintReviewForm() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-grow">
-            <CardTitle className="text-center text-xl font-bold">Teammate Evaluation</CardTitle>
+            <CardTitle className="text-center text-xl font-bold">
+              Teammate Evaluation
+            </CardTitle>
             <CardDescription className="text-center text-muted-foreground">
-              Evaluating your teammate: {review.reviewedTeammateName} ({review.reviewedTeammateId})
+              Evaluating your teammate: {review.reviewedTeammateName} (
+              {review.reviewedTeammateId})
             </CardDescription>
           </div>
         </CardHeader>
@@ -197,7 +249,8 @@ export default function SprintReviewForm() {
             {/* Question 1 */}
             <div>
               <Label className="block mb-2 text-sm font-medium">
-                Has this person kept up with their role responsibilities? (Scrum Master, DevOps, Testing, Reqs)
+                Has this person kept up with their role responsibilities? (Scrum
+                Master, DevOps, Testing, Reqs)
               </Label>
               <RadioGroup
                 value={formData.keptUpWithResponsibilities}
@@ -207,8 +260,14 @@ export default function SprintReviewForm() {
               >
                 <div className="flex justify-between space-x-4">
                   {options.map((option) => (
-                    <div key={option.label} className="flex flex-col items-center w-full">
-                      <RadioGroupItem value={option.value} id={`keptUpWithResponsibilities-${option}`} />
+                    <div
+                      key={option.label}
+                      className="flex flex-col items-center w-full"
+                    >
+                      <RadioGroupItem
+                        value={option.value}
+                        id={`keptUpWithResponsibilities-${option}`}
+                      />
                       <Label
                         htmlFor={`keptUpWithResponsibilities-${option}`}
                         className="mt-1 text-center"
@@ -220,7 +279,7 @@ export default function SprintReviewForm() {
                 </div>
               </RadioGroup>
             </div>
-  
+
             {/* Question 2 */}
             <div>
               <Label className="block mb-2 text-sm font-medium">
@@ -234,8 +293,14 @@ export default function SprintReviewForm() {
               >
                 <div className="flex justify-between space-x-4">
                   {options.map((option) => (
-                    <div key={option.label} className="flex flex-col items-center w-full">
-                      <RadioGroupItem value={option.value} id={`helpedTeamMembers-${option}`} />
+                    <div
+                      key={option.label}
+                      className="flex flex-col items-center w-full"
+                    >
+                      <RadioGroupItem
+                        value={option.value}
+                        id={`helpedTeamMembers-${option}`}
+                      />
                       <Label
                         htmlFor={`helpedTeamMembers-${option}`}
                         className="mt-1 text-center"
@@ -247,7 +312,7 @@ export default function SprintReviewForm() {
                 </div>
               </RadioGroup>
             </div>
-  
+
             {/* Question 3 */}
             <div>
               <Label className="block mb-2 text-sm font-medium">
@@ -261,8 +326,14 @@ export default function SprintReviewForm() {
               >
                 <div className="flex justify-between space-x-4">
                   {options.map((option) => (
-                    <div key={option.label} className="flex flex-col items-center w-full">
-                      <RadioGroupItem value={option.value} id={`communicatedEffectively-${option}`} />
+                    <div
+                      key={option.label}
+                      className="flex flex-col items-center w-full"
+                    >
+                      <RadioGroupItem
+                        value={option.value}
+                        id={`communicatedEffectively-${option}`}
+                      />
                       <Label
                         htmlFor={`communicatedEffectively-${option}`}
                         className="mt-1 text-center"
@@ -274,7 +345,7 @@ export default function SprintReviewForm() {
                 </div>
               </RadioGroup>
             </div>
-  
+
             {/* Question 4 */}
             <div>
               <Label className="block mb-2 text-sm font-medium">
@@ -288,8 +359,14 @@ export default function SprintReviewForm() {
               >
                 <div className="flex justify-between space-x-4">
                   {options.map((option) => (
-                    <div key={option.label} className="flex flex-col items-center w-full">
-                      <RadioGroupItem value={option.value} id={`ideasTakenSeriously-${option}`} />
+                    <div
+                      key={option.label}
+                      className="flex flex-col items-center w-full"
+                    >
+                      <RadioGroupItem
+                        value={option.value}
+                        id={`ideasTakenSeriously-${option}`}
+                      />
                       <Label
                         htmlFor={`ideasTakenSeriously-${option}`}
                         className="mt-1 text-center"
@@ -301,7 +378,7 @@ export default function SprintReviewForm() {
                 </div>
               </RadioGroup>
             </div>
-  
+
             {/* Question 5 */}
             <div>
               <Label className="block mb-2 text-sm font-medium">
@@ -315,8 +392,14 @@ export default function SprintReviewForm() {
               >
                 <div className="flex justify-between space-x-4">
                   {options.map((option) => (
-                    <div key={option.label} className="flex flex-col items-center w-full">
-                      <RadioGroupItem value={option.value} id={`putInAppropriateTime-${option}`} />
+                    <div
+                      key={option.label}
+                      className="flex flex-col items-center w-full"
+                    >
+                      <RadioGroupItem
+                        value={option.value}
+                        id={`putInAppropriateTime-${option}`}
+                      />
                       <Label
                         htmlFor={`putInAppropriateTime-${option}`}
                         className="mt-1 text-center"
@@ -338,11 +421,19 @@ export default function SprintReviewForm() {
               }
             >
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Not at all compatible</Label>
+                <Label className="text-sm font-medium">
+                  Not at all compatible
+                </Label>
                 <div className="flex justify-between items-center flex-grow">
                   {["1", "2", "3", "4", "5"].map((option) => (
-                    <div key={option} className="flex flex-col items-center flex-grow">
-                      <RadioGroupItem value={option} id={`compatibility-${option}`} />
+                    <div
+                      key={option}
+                      className="flex flex-col items-center flex-grow"
+                    >
+                      <RadioGroupItem
+                        value={option}
+                        id={`compatibility-${option}`}
+                      />
                       <Label
                         htmlFor={`compatibility-${option}`}
                         className="mt-1 text-center"
@@ -365,11 +456,19 @@ export default function SprintReviewForm() {
               }
             >
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Active hindrance to team</Label>
+                <Label className="text-sm font-medium">
+                  Active hindrance to team
+                </Label>
                 <div className="flex justify-between items-center flex-grow">
                   {["1", "2", "3", "4", "5"].map((option) => (
-                    <div key={option} className="flex flex-col items-center flex-grow">
-                      <RadioGroupItem value={option} id={`compatibility-${option}`} />
+                    <div
+                      key={option}
+                      className="flex flex-col items-center flex-grow"
+                    >
+                      <RadioGroupItem
+                        value={option}
+                        id={`compatibility-${option}`}
+                      />
                       <Label
                         htmlFor={`compatibility-${option}`}
                         className="mt-1 text-center"
@@ -386,7 +485,10 @@ export default function SprintReviewForm() {
             {/* Improvement Area */}
             <h3 className="text-lg font-bold">Feedback</h3>
             <div className="space-y-2">
-              <Label htmlFor="improvementFeedback" className="text-sm font-medium">
+              <Label
+                htmlFor="improvementFeedback"
+                className="text-sm font-medium"
+              >
                 What is something you would like to see this student improve on?
               </Label>
               <Textarea
@@ -394,8 +496,10 @@ export default function SprintReviewForm() {
                 name="improvementFeedback"
                 placeholder="Optional feedback (max 250 characters)"
                 maxLength={250}
-                value={formData.improvementFeedback || ''}
-                onChange={(e) => handleInputChange("improvementFeedback", e.target.value)}
+                value={formData.improvementFeedback || ""}
+                onChange={(e) =>
+                  handleInputChange("improvementFeedback", e.target.value)
+                }
                 className="w-full"
               />
             </div>
@@ -410,33 +514,38 @@ export default function SprintReviewForm() {
                 name="strengthFeedback"
                 placeholder="Optional feedback (max 250 characters)"
                 maxLength={250}
-                value={formData.strengthFeedback || ''}
-                onChange={(e) => handleInputChange("strengthFeedback", e.target.value)}
+                value={formData.strengthFeedback || ""}
+                onChange={(e) =>
+                  handleInputChange("strengthFeedback", e.target.value)
+                }
                 className="w-full"
               />
-            </div>     
+            </div>
 
             {/* Flag Review */}
             <div className="space-y-2">
               <Label htmlFor="isFlagged" className="text-sm font-medium">
-                  Would you like to flag this review for the professor? {" "} 
+                Would you like to flag this review for the professor?{" "}
               </Label>
-              <Checkbox 
-                id="flag" 
-                checked={formData.isFlagged} 
-                onCheckedChange={(checked) => handleInputChange("isFlagged", checked)}
+              <Checkbox
+                id="flag"
+                checked={formData.isFlagged}
+                onCheckedChange={(checked) =>
+                  handleInputChange("isFlagged", checked)
+                }
               />
             </div>
 
-            <Button type="submit" className="w-full bg-primary text-primary-foreground">
+            <Button
+              type="submit"
+              className="w-full bg-primary text-primary-foreground"
+            >
               Submit Evaluation
             </Button>
-
-            
           </form>
         </CardContent>
       </Card>
       <Toaster />
     </div>
-  );  
+  );
 }
