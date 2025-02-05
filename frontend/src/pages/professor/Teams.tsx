@@ -88,7 +88,7 @@ const Teams = () => {
           <Spinner />
         ) : (
           data?.teams.map((t: any) => (
-            <Link key={t.name} to={`/teams/${t.name}`}>
+            <Link key={t.team} to={`/teams/${t.team}`}>
               <TeamCard teamName={t.name} students={t.students} />
             </Link>
           ))
