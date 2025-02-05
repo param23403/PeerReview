@@ -208,9 +208,50 @@ const submitReview = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+const getReviewsForUserBySprint = async (req: Request, res: Response): Promise<void> => {
+  const { computingID: computingID, sprintId } = req.params;
+
+  if (!computingID || !sprintId) {
+    res.status(400).json({ message: "Missing userId or sprintId parameter" });
+    return;
+  }
+
+  try {
+    // Fetch the student's teamId
+    const studentSnapshot = await db
+      .collection("students")
+      .where("computingID", "==", computingID)
+      .get();
+
+    if (studentSnapshot.empty) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+
+    const studentData = studentSnapshot.docs[0].data();
+    const name = studentData.name
+
+    // Fetch reviews submitted by teammates for the user
+    const reviewsSnapshot = await db
+      .collection("reviews")
+      .where("reviewedTeammateId", "==", computingID)
+      .where("sprintId", "==", sprintId)
+      .get();
+
+    const reviews = reviewsSnapshot.empty ? [] : reviewsSnapshot.docs.map(doc => doc.data());
+
+    res.status(200).json({name, reviews});
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    res.status(500).json({ message: "Failed to fetch reviews" });
+  }
+};
+
 router.get("/getReviews/:reviewerId/:sprintId", getReviewsByReviewerAndSprint);
 
 router.post("/submitReview", submitReview);
+  
+router.get("/getReviewsForUserBySprint/:computingID/:sprintId", getReviewsForUserBySprint)
 
 router.get("/search", getReviews);
 
