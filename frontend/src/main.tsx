@@ -28,6 +28,7 @@ import PublicRoute from "./components/PublicRoute";
 import ManageSprints from "./pages/professor/ManageSprints";
 import EditSprint from "./pages/professor/EditSprint";
 import StudentSprintView from "./pages/professor/StudentSprintView";
+import ChooseSprint from "./pages/professor/ChooseSprint";
 
 const queryClient = new QueryClient();
 
@@ -114,7 +115,7 @@ const router = createBrowserRouter([
           },
           {
             path: "/student/:computingID",
-            element: <StudentSprints />,
+            element: <ChooseSprint />,
           },
           {
             path: "/student/:computingID/:sprintId",
