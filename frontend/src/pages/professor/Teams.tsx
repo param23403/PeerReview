@@ -1,87 +1,162 @@
-import { useState, useEffect, useRef } from "react"
-import { useInfiniteQuery } from "@tanstack/react-query"
-import axios from "axios"
-import TeamCard from "../../components/TeamCard"
-import Spinner from "../../components/Spinner"
-import { Link } from "react-router-dom" // Import Link
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useSearchParams } from "react-router-dom";
+import axios from "axios";
+import { Input } from "../../components/ui/input";
 
-const fetchTeams = async ({ pageParam = 1 }: { queryKey: any; pageParam?: number }) => {
-  const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/teams/getTeams`, {params: { page: pageParam, limit: 20 }})
-  return response.data
-}
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../../components/ui/pagination";
+import Spinner from "../../components/Spinner";
+import TeamCard from "../../components/TeamCard";
+
+const fetchTeams = async ({
+  searchTerm,
+  page,
+  limit,
+}: {
+  searchTerm: string;
+  page: number;
+  limit: number;
+}) => {
+  const response = await axios.get(
+    `${import.meta.env.VITE_BACKEND_URL}/teams/search`,
+    {
+      params: { search: searchTerm, page, limit },
+    }
+  );
+  console.log(response.data);
+  return response.data;
+};
 
 const Teams = () => {
-  const [teams, setTeams] = useState<any[]>([]) 
-  const observerRef = useRef<HTMLDivElement | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [limit] = useState(20);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error } = useInfiniteQuery({
-    queryKey: ["teams"],
-    queryFn: fetchTeams,
-    getNextPageParam: (lastPage, allPages) => {
-      return lastPage.length < 20 ? undefined : allPages.length + 1
-    },
-    initialPageParam: 1,
-    refetchInterval: 5000,
-  })
+  const searchTerm = searchParams.get("search") || "";
+  const page = parseInt(searchParams.get("page") || "1", 10);
+
+  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
 
   useEffect(() => {
-    if (data) {
-      setTeams((prevTeams) => {
-        const newTeams = data.pages.flat()
-        const uniqueTeams = [
-          ...prevTeams,
-          ...newTeams.filter((newTeam) => !prevTeams.some((team) => team.id === newTeam.id))
-        ]
-        return uniqueTeams
-      })
-    }
-  }, [data])
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 200);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasNextPage) {
-          fetchNextPage()
-        }
-      },
-      { threshold: 1.0 }
-    )
+  const { data, error, isLoading, isError } = useQuery({
+    queryKey: ["teams", debouncedSearch, page, limit],
+    queryFn: () => fetchTeams({ searchTerm: debouncedSearch, page, limit }),
+  });
 
-    if (observerRef.current) {
-      observer.observe(observerRef.current)
-    }
+  const totalPages = Math.ceil((data?.total || 0) / limit);
 
-    return () => observer.disconnect()
-  }, [fetchNextPage, hasNextPage])
+  const handleSearchChange = (value: string) => {
+    setSearchParams({ search: value, page: "1" });
+  };
+
+  // console.info(data)
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4 text-primary text-center">Teams</h1>
+      <h1 className="text-3xl font-bold mb-4 text-primary">Teams Search</h1>
 
-      {isError && <div className="text-destructive-foreground">Error: {error instanceof Error ? error.message : "Failed to fetch teams"}</div>}
-
-      <div className="flex flex-col space-y-4">
-        {isLoading
-          ? Array.from({ length: 5 }).map((_, index) => <TeamCard key={index} loading />)
-          : teams.map((team: any) => (
-              <Link key={team.id} to={`/teams/${team.id}`}>
-                <TeamCard
-                  teamName={team.id}
-                  students={team.students}
-                />
-              </Link>
-            ))}
+      <div className="mb-6">
+        <Input
+          type="text"
+          placeholder="Search by Team number"
+          value={searchTerm}
+          onChange={(e) => handleSearchChange(e.target.value)}
+          className="w-full p-2"
+        />
       </div>
 
-      {isFetchingNextPage && (
-        <div className="flex justify-center mt-4">
-          <Spinner />
+      {isError && (
+        <div className="text-destructive-foreground">
+          Error:{" "}
+          {error instanceof Error ? error.message : "Failed to fetch Teams"}
         </div>
       )}
 
-      <div ref={observerRef} className="h-1"></div>
-    </div>
-  )
-}
+      <div className="overflow-x-auto">
+        {isLoading ? (
+          <Spinner />
+        ) : (
+          data?.teams.map((t: any) => (
+            <Link key={t.team} to={`/teams/${t.team}`}>
+              <TeamCard teamName={t.name} students={t.students} />
+            </Link>
+          ))
+        )}
+      </div>
 
-export default Teams
+      <div className="mt-6 flex justify-center">
+        <Pagination>
+          <PaginationContent>
+            {page > 1 && (
+              <PaginationItem>
+                <PaginationPrevious
+                  href={`?search=${debouncedSearch}&page=${page - 1}`}
+                />
+              </PaginationItem>
+            )}
+
+            {Array.from({ length: totalPages })
+              .map((_, idx) => idx + 1)
+              .filter((pageNumber) => {
+                if (
+                  pageNumber === 1 ||
+                  pageNumber === totalPages ||
+                  Math.abs(pageNumber - page) <= 1
+                ) {
+                  return true;
+                }
+                return false;
+              })
+              .reduce<(number | "ellipsis")[]>(
+                (acc, pageNumber, idx, array) => {
+                  if (idx > 0 && pageNumber !== array[idx - 1] + 1) {
+                    acc.push("ellipsis");
+                  }
+                  acc.push(pageNumber);
+                  return acc;
+                },
+                []
+              )
+              .map((item, idx) =>
+                item === "ellipsis" ? (
+                  <PaginationItem key={`ellipsis-${idx}`}>
+                    <PaginationEllipsis />
+                  </PaginationItem>
+                ) : (
+                  <PaginationItem key={item}>
+                    <PaginationLink
+                      href={`?search=${debouncedSearch}&page=${item}`}
+                      isActive={item === page}
+                    >
+                      {item}
+                    </PaginationLink>
+                  </PaginationItem>
+                )
+              )}
+
+            {page < totalPages && (
+              <PaginationItem>
+                <PaginationNext
+                  href={`?search=${debouncedSearch}&page=${page + 1}`}
+                />
+              </PaginationItem>
+            )}
+          </PaginationContent>
+        </Pagination>
+      </div>
+    </div>
+  );
+};
+
+export default Teams;
