@@ -47,7 +47,7 @@ const getReviews = async (req: Request, res: Response): Promise<void> => {
     }
 
     if (redFlagsOnly && redFlagsOnly === "true") {
-      query = query.where("redFlag", "==", true);
+      query = query.where("isFlagged", "==", true);
     }
 
     const snapshot = await query.get();
