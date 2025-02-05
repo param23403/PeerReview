@@ -113,11 +113,11 @@ const router = createBrowserRouter([
             element: <EditSprint />,
           },
           {
-            path: "/student/:computingId",
+            path: "/student/:computingID",
             element: <StudentSprints />,
           },
           {
-            path: "/student/:computingId/:sprintId",
+            path: "/student/:computingID/:sprintId",
             element: <StudentSprintView />,
           },
         ],

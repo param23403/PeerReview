@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Card, CardContent } from "../../components/ui/card";
-import { CheckCircle, XCircle, ChevronRight, Lock } from "lucide-react";
 import { useAuth } from "../../auth/useAuth";
 
 interface Sprint {
@@ -9,17 +8,7 @@ interface Sprint {
   name: string;
   sprintDueDate: Date;
   reviewDueDate: Date;
-  completedReviews: number;
-  totalReviews: number;
 }
-
-const getSprintStatus = (sprint: Sprint) => {
-  const currentDate = new Date();
-  const isPastSprintDueDate = currentDate > sprint.sprintDueDate;
-  const isReviewOpen = isPastSprintDueDate && currentDate <= sprint.reviewDueDate;
-
-  return { isPastSprintDueDate, isReviewOpen };
-};
 
 function SprintCard({
   sprint,
@@ -30,22 +19,6 @@ function SprintCard({
   isPastSprintDueDate?: boolean;
   isReviewOpen?: boolean;
 }) {
-  const statusIcon = () => {
-    if (!isReviewOpen) {
-      return <Lock className="text-gray-500 w-6 h-6" />;
-    }
-
-    const isComplete = sprint.completedReviews === sprint.totalReviews;
-    const Icon = isComplete ? CheckCircle : XCircle;
-
-    return (
-      <>
-        <Icon className={`w-6 h-6 ${isComplete ? "text-green-500" : "text-red-500"}`} />
-        <span className="mr-2">{isComplete ? "Complete" : "Incomplete"}</span>
-      </>
-    );
-  };
-
   const statusLabel = () => {
     if (!isReviewOpen && !isPastSprintDueDate) {
       return `Opens ${sprint.sprintDueDate.toLocaleDateString()}`;
@@ -67,33 +40,24 @@ function SprintCard({
           </h2>
           <p className="text-sm text-gray-500">{statusLabel()}</p>
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            {statusIcon()}
-            <span className="text-base text-gray-500">
-              {sprint.completedReviews ?? 0}/{sprint.totalReviews ?? 0}
-            </span>
-          </div>
-          {isReviewOpen && <ChevronRight className="text-gray-400 w-6 h-6" />}
-        </div>
       </CardContent>
     </Card>
   );
 }
 
 export default function StudentSprints() {
-  const { userData, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const [sprints, setSprints] = useState<Sprint[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const { computingID } = useParams<{ computingID: string }>();
 
   useEffect(() => {
-    const studentId = userData?.studentId;
-    if (!authLoading && studentId) {
+    if (!authLoading) {
       const fetchSprints = async () => {
         try {
           const response = await fetch(
-            `${import.meta.env.VITE_BACKEND_URL}/sprints/getStudentSprints/${studentId}`
+            `${import.meta.env.VITE_BACKEND_URL}/sprints/getSprints`
           );
 
           if (!response.ok) {
@@ -107,10 +71,12 @@ export default function StudentSprints() {
               sprintsData.map((sprint: any) => ({
                 id: sprint.id || "",
                 name: sprint.name || "Unnamed Sprint",
-                sprintDueDate: new Date(sprint.sprintDueDate?._seconds * 1000 || Date.now()),
-                reviewDueDate: new Date(sprint.reviewDueDate?._seconds * 1000 || Date.now()),
-                completedReviews: sprint.completedReviews ?? 0,
-                totalReviews: sprint.totalReviews ?? 0,
+                sprintDueDate: new Date(
+                  sprint.sprintDueDate?._seconds * 1000 || Date.now()
+                ),
+                reviewDueDate: new Date(
+                  sprint.reviewDueDate?._seconds * 1000 || Date.now()
+                ),
               }))
             );
           } else {
@@ -126,15 +92,7 @@ export default function StudentSprints() {
 
       fetchSprints();
     }
-  }, [authLoading, userData]);
-
-  if (authLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Loading authentication...</p>
-      </div>
-    );
-  }
+  }, [authLoading]);
 
   if (loading) {
     return (
@@ -155,25 +113,19 @@ export default function StudentSprints() {
   return (
     <div className="container mx-auto p-4 flex justify-center">
       <div className="w-full max-w-3xl">
-        <h1 className="text-2xl font-bold mb-4 text-center">Sprints</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center">Select a Sprint</h1>
         <div className="space-y-8">
           {sprints.map((sprint) => {
-            const { isPastSprintDueDate, isReviewOpen } = getSprintStatus(sprint);
-
-            return isReviewOpen ? (
+            return (
               <Link
-                to={`/sprints/${sprint.id}/reviews`}
+                to={`/student/${computingID}/${sprint.id}`}
                 state={{ sprint }}
                 key={sprint.id}
                 className="block transition-shadow duration-200 hover:shadow-lg"
-                aria-label={`View details for Sprint ${sprint.id}`}
+                aria-label={`View Sprint ${sprint.id} details for ${computingID}`}
               >
-                <SprintCard sprint={sprint} isPastSprintDueDate={isPastSprintDueDate} isReviewOpen={isReviewOpen} />
+                <SprintCard sprint={sprint} />
               </Link>
-            ) : (
-              <div key={sprint.id} className="cursor-not-allowed">
-                <SprintCard sprint={sprint} isPastSprintDueDate={isPastSprintDueDate} isReviewOpen={isReviewOpen} />
-              </div>
             );
           })}
         </div>
