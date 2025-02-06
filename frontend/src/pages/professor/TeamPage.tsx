@@ -10,10 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
+import { Button } from "../../components/ui/button";
 const TeamPage = () => {
   const { teamId } = useParams<{ teamId: string }>();
   const [team, setTeam] = useState<any | null>(null);
   const navigate = useNavigate();
+  const { sprintId } = useParams<{ sprintId: string }>();
 
   useEffect(() => {
     const fetchTeamData = async () => {
@@ -30,11 +32,21 @@ const TeamPage = () => {
     fetchTeamData();
   }, [teamId]);
   const handleNavigate = (cid: string) => {
-    navigate(`/student/${cid}`);
+    navigate(`/student/${cid}/${sprintId}`);
+  };
+  const handleBackClick = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/", { replace: true });
+    }
   };
   return (
     <div className="container mx-auto p-6">
       <div className="mb-6">
+        <Button onClick={handleBackClick} className="mr-4">
+          &lt; Back
+        </Button>
         <h1 className="mb-2 font-bold text-3xl">{teamId}</h1>
       </div>
       <div className="space-y-4 mb-10">
@@ -75,9 +87,6 @@ const TeamPage = () => {
           <p>Unable to load information about {teamId}.</p>
         )}
       </div>
-      <Link to="/teams" className="text-blue-500 hover:underline">
-        Back to all teams
-      </Link>
     </div>
   );
 };

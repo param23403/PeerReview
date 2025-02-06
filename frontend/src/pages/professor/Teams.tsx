@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import axios from "axios";
 import { Input } from "../../components/ui/input";
 
@@ -15,6 +20,7 @@ import {
 } from "../../components/ui/pagination";
 import Spinner from "../../components/Spinner";
 import TeamCard from "../../components/TeamCard";
+import { Button } from "../../components/ui/button";
 
 const fetchTeams = async ({
   searchTerm,
@@ -40,8 +46,10 @@ const Teams = () => {
 
   const searchTerm = searchParams.get("search") || "";
   const page = parseInt(searchParams.get("page") || "1", 10);
+  const { sprintId } = useParams<{ sprintId: string }>();
 
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm), 200);
@@ -58,11 +66,18 @@ const Teams = () => {
   const handleSearchChange = (value: string) => {
     setSearchParams({ search: value, page: "1" });
   };
-
-  // console.info(data)
-
+  const handleBackClick = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/", { replace: true });
+    }
+  };
   return (
     <div className="container mx-auto p-6">
+      <Button onClick={handleBackClick} className="mr-4">
+        &lt; Back
+      </Button>
       <h1 className="text-3xl font-bold mb-4 text-primary">Teams Search</h1>
 
       <div className="mb-6">
@@ -87,8 +102,12 @@ const Teams = () => {
           <Spinner />
         ) : (
           data?.teams.map((t: any) => (
-            <Link key={t.team} to={`/teams/${t.team}`}>
-              <TeamCard teamName={t.name} students={t.students} />
+            <Link key={t.team} to={`/sprint/${sprintId}/teams/${t.team}`}>
+              <TeamCard
+                teamName={t.name}
+                students={t.students}
+                // sprintId={sprintId}
+              />
             </Link>
           ))
         )}

@@ -30,6 +30,7 @@ import EditSprint from "./pages/professor/EditSprint";
 import StudentSprintView from "./pages/professor/StudentSprintView";
 import ChooseSprint from "./pages/professor/ChooseSprint";
 import ReviewView from "./pages/professor/ReviewView";
+import Sprints from "./pages/professor/Sprints";
 
 const queryClient = new QueryClient();
 
@@ -95,11 +96,15 @@ const router = createBrowserRouter([
             element: <Reviews />,
           },
           {
-            path: "/teams",
+            path: "/viewsprints",
+            element: <Sprints />,
+          },
+          {
+            path: "/sprint/:sprintId",
             element: <Teams />,
           },
           {
-            path: "/teams/:teamId",
+            path: "/sprint/:sprintId/teams/:teamId",
             element: <TeamPage />,
           },
           {
