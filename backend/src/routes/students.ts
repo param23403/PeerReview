@@ -95,7 +95,6 @@ const addStudent = async (req: Request, res: Response): Promise<void> => {
     discordID,
   } = req.body;
 
-
   try {
     const studentsRef = db.collection("students");
     const snapshot = await studentsRef.get();
@@ -115,11 +114,31 @@ const addStudent = async (req: Request, res: Response): Promise<void> => {
 
     if (teamDoc.exists) {
       const currentStudents = teamDoc.data()?.students || [];
-      currentStudents.push({ computingID, firstName, lastName });
+      currentStudents.push({
+        computingID,
+        firstName,
+        lastName,
+        discordID,
+        preferredPronouns,
+        githubID,
+        team,
+      });
 
       await teamRef.update({ students: currentStudents });
     } else {
-      await teamRef.set({ students: [{ computingID, firstName, lastName }] });
+      await teamRef.set({
+        students: [
+          {
+            computingID,
+            firstName,
+            lastName,
+            discordID,
+            preferredPronouns,
+            githubID,
+            team,
+          },
+        ],
+      });
     }
 
     res.status(201).json({ message: "Student added successfully" });
