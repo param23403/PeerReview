@@ -12,7 +12,7 @@ const StudentProtectedRoute = () => {
   }
   if (user) {
     if (userData?.role === "professor") {
-      return <Navigate to="/teams" replace />;
+      return <Navigate to="/viewsprints" replace />;
     }
   }
 

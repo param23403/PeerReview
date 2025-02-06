@@ -1,9 +1,20 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 import axios from "axios";
 import { Input } from "../../components/ui/input";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import {
   Pagination,
   PaginationContent,
@@ -15,20 +26,25 @@ import {
 } from "../../components/ui/pagination";
 import Spinner from "../../components/Spinner";
 import TeamCard from "../../components/TeamCard";
+import { Button } from "../../components/ui/button";
 
 const fetchTeams = async ({
   searchTerm,
   page,
   limit,
+  sprintID,
+  severity,
 }: {
   searchTerm: string;
   page: number;
   limit: number;
+  sprintID: string;
+  severity: string;
 }) => {
   const response = await axios.get(
-    `${import.meta.env.VITE_BACKEND_URL}/teams/search`,
+    `${import.meta.env.VITE_BACKEND_URL}/teams/searchteambysprint`,
     {
-      params: { search: searchTerm, page, limit },
+      params: { search: searchTerm, page, limit, sprintID, severity },
     }
   );
   return response.data;
@@ -40,32 +56,56 @@ const Teams = () => {
 
   const searchTerm = searchParams.get("search") || "";
   const page = parseInt(searchParams.get("page") || "1", 10);
-
+  const { sprintId } = useParams<{ sprintId: string }>();
+  const sprintID = sprintId || "";
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
-
+  const navigate = useNavigate();
+  const severity = searchParams.get("severity") || "";
+  const severityData: string[] = ["bad", "medium", "good", "not filled out"];
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm), 200);
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
   const { data, error, isLoading, isError } = useQuery({
-    queryKey: ["teams", debouncedSearch, page, limit],
-    queryFn: () => fetchTeams({ searchTerm: debouncedSearch, page, limit }),
+    queryKey: ["teams", debouncedSearch, page, limit, sprintID, severity],
+    queryFn: () =>
+      fetchTeams({
+        searchTerm: debouncedSearch,
+        page,
+        limit,
+        sprintID,
+        severity,
+      }),
   });
 
   const totalPages = Math.ceil((data?.total || 0) / limit);
 
   const handleSearchChange = (value: string) => {
-    setSearchParams({ search: value, page: "1" });
+    setSearchParams({ search: value, page: "1", severity: severity });
   };
-
-  // console.info(data)
-
+  const handleSeverityChange = (value: string) => {
+    setSearchParams({
+      search: searchTerm,
+      page: "1",
+      severity: value,
+    });
+  };
+  const handleBackClick = () => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/", { replace: true });
+    }
+  };
   return (
     <div className="container mx-auto p-6">
+      <Button onClick={handleBackClick} className="mr-4">
+        &lt; Back
+      </Button>
       <h1 className="text-3xl font-bold mb-4 text-primary">Teams Search</h1>
 
-      <div className="mb-6">
+      <div className="mb-6 flex gap-4">
         <Input
           type="text"
           placeholder="Search by Team number"
@@ -73,6 +113,22 @@ const Teams = () => {
           onChange={(e) => handleSearchChange(e.target.value)}
           className="w-full p-2"
         />
+        <Select
+          value={severity}
+          onValueChange={(value) => handleSeverityChange(value)}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="All Severities" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Severities</SelectItem>
+            {severityData?.map((severity: string) => (
+              <SelectItem key={severity} value={severity}>
+                {severity}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {isError && (
@@ -87,8 +143,8 @@ const Teams = () => {
           <Spinner />
         ) : (
           data?.teams.map((t: any) => (
-            <Link key={t.team} to={`/teams/${t.team}`}>
-              <TeamCard teamName={t.name} students={t.students} />
+            <Link key={t.team} to={`/sprint/${sprintId}/teams/${t.team}`}>
+              <TeamCard team={t} students={t.students} />
             </Link>
           ))
         )}

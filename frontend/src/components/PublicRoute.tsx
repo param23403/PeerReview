@@ -11,7 +11,7 @@ const PublicRoute = () => {
     if (userData?.role === "student") {
       return <Navigate to="/sprints" replace />;
     } else if (userData?.role === "professor") {
-      return <Navigate to="/teams" replace />;
+      return <Navigate to="/viewsprints" replace />;
     }
   }
 
