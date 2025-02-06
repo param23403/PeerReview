@@ -37,16 +37,22 @@ const TeamCard: React.FC<TeamCardProps> = ({ team, students, loading }) => {
 
   const status = getStatus(team?.minAvgScore);
   return (
-    <Card className="p-4 shadow-sm">
+    <Card className="p-4 shadow-sm mb-4">
       <CardHeader className="flex-row justify-between items-start p-0 mb-2">
         <div>
           <CardTitle className="text-lg font-bold">
             {team.name || "Unnamed Team"}
           </CardTitle>
         </div>
-        <div className="flex flex-col items-end">
+        <div className="flex flex-col items-end p-1">
           <span className="text-sm font-medium">
             Pending reviews: {team?.pendingReviews ?? 0}
+          </span>
+          <span className="text-sm font-medium p-1">
+            Minimum Average score: {team?.minAvgScore ?? "N/A"}
+          </span>
+          <span className="text-sm font-medium p-1">
+            Minimum score ID: {team?.minId ?? "N/A"}
           </span>
           <span
             className={`text-sm font-bold text-black px-2 py-1 rounded ${status.bgColor}`}
