@@ -26,15 +26,17 @@ const fetchTeams = async ({
   searchTerm,
   page,
   limit,
+  sprintID,
 }: {
   searchTerm: string;
   page: number;
   limit: number;
+  sprintID: string;
 }) => {
   const response = await axios.get(
-    `${import.meta.env.VITE_BACKEND_URL}/teams/search`,
+    `${import.meta.env.VITE_BACKEND_URL}/teams/searchteambysprint`,
     {
-      params: { search: searchTerm, page, limit },
+      params: { search: searchTerm, page, limit, sprintID },
     }
   );
   return response.data;
@@ -47,7 +49,7 @@ const Teams = () => {
   const searchTerm = searchParams.get("search") || "";
   const page = parseInt(searchParams.get("page") || "1", 10);
   const { sprintId } = useParams<{ sprintId: string }>();
-
+  const sprintID = sprintId || "";
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const navigate = useNavigate();
 
@@ -57,8 +59,9 @@ const Teams = () => {
   }, [searchTerm]);
 
   const { data, error, isLoading, isError } = useQuery({
-    queryKey: ["teams", debouncedSearch, page, limit],
-    queryFn: () => fetchTeams({ searchTerm: debouncedSearch, page, limit }),
+    queryKey: ["teams", debouncedSearch, page, limit, sprintID],
+    queryFn: () =>
+      fetchTeams({ searchTerm: debouncedSearch, page, limit, sprintID }),
   });
 
   const totalPages = Math.ceil((data?.total || 0) / limit);
@@ -103,11 +106,7 @@ const Teams = () => {
         ) : (
           data?.teams.map((t: any) => (
             <Link key={t.team} to={`/sprint/${sprintId}/teams/${t.team}`}>
-              <TeamCard
-                teamName={t.name}
-                students={t.students}
-                // sprintId={sprintId}
-              />
+              <TeamCard team={t} students={t.students} />
             </Link>
           ))
         )}

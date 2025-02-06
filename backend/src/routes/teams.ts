@@ -181,8 +181,156 @@ const searchTeams = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+const searchTeamsBySprint = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { search = "", page = 1, limit = 20, sprintID } = req.query;
+  if (!sprintID) {
+    res.status(400).json({ message: "Missing sprintId query parameter" });
+    return;
+  }
+  const searchTerm = search.toString();
+  const pageNumber = parseInt(page.toString(), 10);
+  const pageSize = parseInt(limit.toString(), 10);
+  const sprintIdStr = sprintID.toString();
+
+  try {
+    const teamsRef = db.collection("teams");
+
+    let teamsQuery = teamsRef.orderBy("name");
+    if (searchTerm) {
+      teamsQuery = teamsQuery.startAt(searchTerm).endAt(searchTerm + "\uf8ff");
+    }
+
+    const teamsQuerySnapshot = await teamsQuery.get();
+    if (teamsQuerySnapshot.empty) {
+      res.status(200).json({
+        teams: [],
+        hasNextPage: false,
+        total: 0,
+      });
+      return;
+    }
+
+    const allTeams = teamsQuerySnapshot.docs.map((doc) => ({
+      team: doc.id,
+      ...doc.data(),
+    }));
+
+    const enrichedTeams = await Promise.all(
+      allTeams.map(async (team: any) => {
+        const studentsArr = team.students
+          ? Array.isArray(team.students)
+            ? team.students
+            : Object.values(team.students)
+          : [];
+        const studentIds = studentsArr.map(
+          (student: any) => student.computingID
+        );
+        const teamSize = studentIds.length;
+        const expectedCount = teamSize * (teamSize - 1);
+        if (teamSize < 2) {
+          return {
+            ...team,
+            pendingReviews: 0,
+            minAvgScore: null,
+          };
+        }
+
+        let reviews: FirebaseFirestore.QueryDocumentSnapshot<FirebaseFirestore.DocumentData>[] =
+          [];
+        try {
+          const reviewsSnapshot = await db
+            .collection("reviews")
+            .where("sprintId", "==", sprintIdStr)
+            .where("reviewerId", "in", studentIds)
+            .get();
+          reviews = reviewsSnapshot.docs.filter((doc) => {
+            const data = doc.data();
+            return studentIds.includes(data.reviewedTeammateId);
+          });
+        } catch (err) {
+          const reviewsSnapshot = await db
+            .collection("reviews")
+            .where("sprintId", "==", sprintIdStr)
+            .get();
+          reviews = reviewsSnapshot.docs.filter((doc) => {
+            const data = doc.data();
+            return (
+              studentIds.includes(data.reviewerId) &&
+              studentIds.includes(data.reviewedTeammateId)
+            );
+          });
+        }
+
+        const actualCount = reviews.length;
+        const pendingReviews = expectedCount - actualCount;
+
+        const averages: { [key: string]: { total: number; count: number } } =
+          {};
+        reviews.forEach((doc) => {
+          const data = doc.data();
+          const reviewee = data.reviewedTeammateId;
+          const score = parseFloat(data.overallEvaluationScore);
+          if (!isNaN(score)) {
+            if (!averages[reviewee]) {
+              averages[reviewee] = { total: score, count: 1 };
+            } else {
+              averages[reviewee].total += score;
+              averages[reviewee].count += 1;
+            }
+          }
+        });
+
+        let minAvgScore: number | null = null;
+        let minId: string | null = null;
+        studentIds.forEach((id: any) => {
+          if (averages[id] && averages[id].count > 0) {
+            const avg = averages[id].total / averages[id].count;
+            if (minAvgScore === null || avg < minAvgScore) {
+              minAvgScore = avg;
+              minId = id;
+            }
+          }
+        });
+
+        return {
+          ...team,
+          pendingReviews,
+          minAvgScore,
+          minId,
+        };
+      })
+    );
+
+    enrichedTeams.sort((a, b) => {
+      const aScore = a.minAvgScore !== null ? a.minAvgScore : Infinity;
+      const bScore = b.minAvgScore !== null ? b.minAvgScore : Infinity;
+      return aScore - bScore;
+    });
+
+    const total = enrichedTeams.length;
+    const paginatedTeams = enrichedTeams.slice(
+      (pageNumber - 1) * pageSize,
+      pageNumber * pageSize
+    );
+    const hasNextPage = pageNumber * pageSize < total;
+
+    res.status(200).json({
+      teams: paginatedTeams,
+      hasNextPage,
+      total,
+    });
+  } catch (error: any) {
+    console.error("Error fetching teams: ", error);
+    res.status(500).json({ message: "Failed to fetch Teams" });
+  }
+};
+
 router.post("/create", upload.single("file"), createTeams);
 router.get("/search", searchTeams);
 router.get("/getTeam/:teamID", getTeam);
+router.get("/searchteambysprint", searchTeamsBySprint);
 
 export default router;
