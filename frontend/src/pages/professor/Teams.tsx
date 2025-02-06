@@ -8,7 +8,13 @@ import {
 } from "react-router-dom";
 import axios from "axios";
 import { Input } from "../../components/ui/input";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import {
   Pagination,
   PaginationContent,
@@ -27,16 +33,18 @@ const fetchTeams = async ({
   page,
   limit,
   sprintID,
+  severity,
 }: {
   searchTerm: string;
   page: number;
   limit: number;
   sprintID: string;
+  severity: string;
 }) => {
   const response = await axios.get(
     `${import.meta.env.VITE_BACKEND_URL}/teams/searchteambysprint`,
     {
-      params: { search: searchTerm, page, limit, sprintID },
+      params: { search: searchTerm, page, limit, sprintID, severity },
     }
   );
   return response.data;
@@ -52,22 +60,36 @@ const Teams = () => {
   const sprintID = sprintId || "";
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const navigate = useNavigate();
-
+  const severity = searchParams.get("severity") || "";
+  const severityData: string[] = ["bad", "medium", "good", "not filled out"];
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchTerm), 200);
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
   const { data, error, isLoading, isError } = useQuery({
-    queryKey: ["teams", debouncedSearch, page, limit, sprintID],
+    queryKey: ["teams", debouncedSearch, page, limit, sprintID, severity],
     queryFn: () =>
-      fetchTeams({ searchTerm: debouncedSearch, page, limit, sprintID }),
+      fetchTeams({
+        searchTerm: debouncedSearch,
+        page,
+        limit,
+        sprintID,
+        severity,
+      }),
   });
 
   const totalPages = Math.ceil((data?.total || 0) / limit);
 
   const handleSearchChange = (value: string) => {
-    setSearchParams({ search: value, page: "1" });
+    setSearchParams({ search: value, page: "1", severity: severity });
+  };
+  const handleSeverityChange = (value: string) => {
+    setSearchParams({
+      search: searchTerm,
+      page: "1",
+      severity: value,
+    });
   };
   const handleBackClick = () => {
     if (window.history.length > 2) {
@@ -83,7 +105,7 @@ const Teams = () => {
       </Button>
       <h1 className="text-3xl font-bold mb-4 text-primary">Teams Search</h1>
 
-      <div className="mb-6">
+      <div className="mb-6 flex gap-4">
         <Input
           type="text"
           placeholder="Search by Team number"
@@ -91,6 +113,22 @@ const Teams = () => {
           onChange={(e) => handleSearchChange(e.target.value)}
           className="w-full p-2"
         />
+        <Select
+          value={severity}
+          onValueChange={(value) => handleSeverityChange(value)}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="All Severities" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Severities</SelectItem>
+            {severityData?.map((severity: string) => (
+              <SelectItem key={severity} value={severity}>
+                {severity}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {isError && (

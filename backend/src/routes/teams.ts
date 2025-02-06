@@ -181,11 +181,24 @@ const searchTeams = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+const getSeverityLevel = (score: number | null): string => {
+  if (score === null) return "not filled out";
+  if (score <= 2) return "bad";
+  if (score <= 4) return "medium";
+  return "good";
+};
+
 const searchTeamsBySprint = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { search = "", page = 1, limit = 20, sprintID } = req.query;
+  const {
+    search = "",
+    page = 1,
+    limit = 20,
+    sprintID,
+    severity = "",
+  } = req.query;
   if (!sprintID) {
     res.status(400).json({ message: "Missing sprintId query parameter" });
     return;
@@ -304,14 +317,22 @@ const searchTeamsBySprint = async (
       })
     );
 
-    enrichedTeams.sort((a, b) => {
+    let filteredTeams = enrichedTeams;
+    if (severity && severity !== "all") {
+      filteredTeams = enrichedTeams.filter((team) => {
+        const severityLevel = getSeverityLevel(team.minAvgScore);
+        return severityLevel === severity;
+      });
+    }
+
+    filteredTeams.sort((a, b) => {
       const aScore = a.minAvgScore !== null ? a.minAvgScore : Infinity;
       const bScore = b.minAvgScore !== null ? b.minAvgScore : Infinity;
       return aScore - bScore;
     });
 
-    const total = enrichedTeams.length;
-    const paginatedTeams = enrichedTeams.slice(
+    const total = filteredTeams.length;
+    const paginatedTeams = filteredTeams.slice(
       (pageNumber - 1) * pageSize,
       pageNumber * pageSize
     );
