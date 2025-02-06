@@ -32,7 +32,7 @@ const saveTeamsAndStudents = async (students: any[]) => {
 
         const updatedStudents = [...existingStudents, ...teamsMap[teamID]];
 
-        batch.set(teamRef, { students: updatedStudents }, { merge: true });
+        batch.set(teamRef, { name: teamID, students: updatedStudents });
       })
     );
 
@@ -76,7 +76,7 @@ const createTeams = async (req: Request, res: Response): Promise<void> => {
       .pipe(csvParser())
       .on("data", (data) => {
         students.push({
-          team: data["Team"].split(" ").join("").split("-").join(""),
+          team: data["Team"].trim(),
           computingID: data["Computing ID"],
           lastName: data["Last Name"],
           firstName: data["First Name"],

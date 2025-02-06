@@ -127,6 +127,7 @@ const addStudent = async (req: Request, res: Response): Promise<void> => {
       await teamRef.update({ students: currentStudents });
     } else {
       await teamRef.set({
+        name: team,
         students: [
           {
             computingID,
