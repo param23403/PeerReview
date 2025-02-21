@@ -1,9 +1,9 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../api";
 import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../auth/useAuth";
-import { Button } from "../../components/ui/button";
+import BackButton from "../../components/BackButton";
 
 interface Sprint {
   id: string;
@@ -23,14 +23,14 @@ function SprintCard({
 }) {
   const statusLabel = () => {
     if (!isReviewOpen && !isPastSprintDueDate) {
-      return `Opens ${sprint.sprintDueDate.toLocaleDateString()}`;
+      return `Opens ${sprint?.sprintDueDate?.toLocaleDateString() ?? Date()}`;
     }
 
     if (!isReviewOpen && isPastSprintDueDate) {
-      return `Closed ${sprint.reviewDueDate.toLocaleDateString()}`;
+      return `Closed ${sprint?.reviewDueDate?.toLocaleDateString() ?? Date()}`;
     }
 
-    return `Due ${sprint.reviewDueDate.toLocaleDateString()} ${sprint.reviewDueDate.toLocaleTimeString()}`;
+    return `Due ${sprint?.reviewDueDate?.toLocaleDateString() ?? Date()} ${sprint?.reviewDueDate?.toLocaleTimeString() ?? Date()}`;
   };
 
   return (
@@ -50,15 +50,6 @@ function SprintCard({
 export default function ChooseSprint() {
   const { loading: authLoading } = useAuth();
   const { computingID } = useParams<{ computingID: string }>();
-  const navigate = useNavigate();
-
-  const handleBackClick = () => {
-    if (window.history.length > 2) {
-      navigate(-1);
-    } else {
-      navigate("/", { replace: true });
-    }
-  };
 
   const { data: sprints, error, isLoading } = useQuery({
     queryKey: ["sprints"],
@@ -93,12 +84,13 @@ export default function ChooseSprint() {
   return (
     <div className="container mx-auto p-4 flex justify-center">
       <div className="w-full max-w-3xl">
-        <Button onClick={handleBackClick}>Back</Button>
-        <h1 className="text-2xl font-bold mb-4 text-center">Select a Sprint</h1>
+        <BackButton useNavigateBack />
+        <h1 className="text-2xl font-bold mb-2 text-center">Select a Sprint</h1>
+        <h2 className="text-lg text-muted-foreground text-center mb-4">View Sprint details for {computingID}</h2>
         <div className="space-y-8">
-          {sprints.map((sprint: Sprint) => (
+          {sprints?.map((sprint: Sprint) => (
             <Link
-              to={`/student/${computingID}/${sprint.id}`}
+              to={`${sprint.id}`}
               state={{ sprint }}
               key={sprint.id}
               className="block transition-shadow duration-200 hover:shadow-lg"

@@ -1,193 +1,149 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Input } from "../../components/ui/input";
+import { useState, useEffect } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { Link, useSearchParams } from "react-router-dom"
+import { Input } from "../../components/ui/input"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../../components/ui/table";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "../../components/ui/pagination";
-import Spinner from "../../components/Spinner";
-import api from "../../api";
+	Pagination,
+	PaginationContent,
+	PaginationEllipsis,
+	PaginationItem,
+	PaginationLink,
+	PaginationNext,
+	PaginationPrevious,
+} from "../../components/ui/pagination"
+import Spinner from "../../components/Spinner"
+import api from "../../api"
 
-const fetchStudents = async ({
-  searchTerm,
-  page,
-  limit,
-}: {
-  searchTerm: string;
-  page: number;
-  limit: number;
-}) => {
-  const response = await api.get(
-    "/students/search",
-    {
-      params: { search: searchTerm, page, limit },
-    }
-  )
-  return response.data;
-};
+const fetchStudents = async ({ searchTerm, page, limit }: { searchTerm: string; page: number; limit: number }) => {
+	const response = await api.get("/students/search", {
+		params: { search: searchTerm, page, limit },
+	})
+	return response.data
+}
 
 const Students = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [limit] = useState(20);
+	const [searchParams, setSearchParams] = useSearchParams()
+	const [limit] = useState(20)
 
-  const searchTerm = searchParams.get("search") || "";
-  const page = parseInt(searchParams.get("page") || "1", 10);
-  const navigate = useNavigate();
+	const searchTerm = searchParams.get("search") || ""
+	const page = parseInt(searchParams.get("page") || "1", 10)
 
-  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+	const [debouncedSearch, setDebouncedSearch] = useState(searchTerm)
 
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 200);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+	useEffect(() => {
+		const timer = setTimeout(() => setDebouncedSearch(searchTerm), 200)
+		return () => clearTimeout(timer)
+	}, [searchTerm])
 
-  const { data, error, isLoading, isError } = useQuery({
-    queryKey: ["students", debouncedSearch, page, limit],
-    queryFn: () => fetchStudents({ searchTerm: debouncedSearch, page, limit }),
-  });
+	const { data, error, isLoading, isError } = useQuery({
+		queryKey: ["students", debouncedSearch, page, limit],
+		queryFn: () => fetchStudents({ searchTerm: debouncedSearch, page, limit }),
+	})
 
-  const totalPages = Math.ceil((data?.total || 0) / limit);
+	const totalPages = Math.ceil((data?.total || 0) / limit)
 
-  const handleSearchChange = (value: string) => {
-    setSearchParams({ search: value, page: "1" });
-  };
+	const handleSearchChange = (value: string) => {
+		setSearchParams({ search: value, page: "1" })
+	}
 
-  const handleNavigate = (cid: string) => {
-    navigate(`/student/${cid}`);
-  };
-  return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4 text-primary">Student Search</h1>
+	return (
+		<div className="container mx-auto p-6">
+			<h1 className="text-3xl font-bold mb-4 text-primary">Student Search</h1>
 
-      <div className="mb-6">
-        <Input
-          type="text"
-          placeholder="Search by name or computing ID..."
-          value={searchTerm}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          className="w-full p-2"
-        />
-      </div>
+			<div className="mb-6">
+				<Input
+					type="text"
+					placeholder="Search by name or computing ID..."
+					value={searchTerm}
+					onChange={(e) => handleSearchChange(e.target.value)}
+					className="w-full p-2"
+				/>
+			</div>
 
-      {isError && (
-        <div className="text-destructive-foreground">
-          Error:{" "}
-          {error instanceof Error ? error.message : "Failed to fetch students"}
-        </div>
-      )}
+			{isError && <div className="text-destructive-foreground">Error: {error instanceof Error ? error.message : "Failed to fetch students"}</div>}
 
-      <div className="overflow-x-auto">
-        {isLoading ? (
-          <Spinner />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Computing ID</TableHead>
-                <TableHead>Team</TableHead>
-                <TableHead>GitHub ID</TableHead>
-                <TableHead>Discord ID</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data?.students.map((student: any) => (
-                <TableRow
-                  key={student.id}
-                  onClick={() => handleNavigate(student.computingID)}
-                >
-                  <TableCell>{student.name}</TableCell>
-                  <TableCell>{student.computingID}</TableCell>
-                  <TableCell>{student.team || "Unassigned"}</TableCell>
-                  <TableCell>{student.githubID || "N/A"}</TableCell>
-                  <TableCell>{student.discordID || "N/A"}</TableCell>
-                  <TableCell>
-                    {student.active ? "Active" : "Not Active"}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </div>
+			<div className="overflow-x-auto">
+				{isLoading ? (
+					<Spinner />
+				) : (
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Name</TableHead>
+								<TableHead>Computing ID</TableHead>
+								<TableHead>Team</TableHead>
+								<TableHead>GitHub ID</TableHead>
+								<TableHead>Discord ID</TableHead>
+								<TableHead>Status</TableHead>
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{data?.students.map((student: any) => (
+								<TableRow key={student.id}>
+									<Link to={`/student/${student.id}`} className="contents">
+										<TableCell>{student.name}</TableCell>
+										<TableCell>{student.computingID}</TableCell>
+										<TableCell>{student.team || "Unassigned"}</TableCell>
+										<TableCell>{student.githubID || "N/A"}</TableCell>
+										<TableCell>{student.discordID || "N/A"}</TableCell>
+										<TableCell>{student.active ? "Active" : "Not Active"}</TableCell>
+									</Link>
+								</TableRow>
+							))}
+						</TableBody>
+					</Table>
+				)}
+			</div>
 
-      <div className="mt-6 flex justify-center">
-        <Pagination>
-          <PaginationContent>
-            {page > 1 && (
-              <PaginationItem>
-                <PaginationPrevious
-                  href={`?search=${debouncedSearch}&page=${page - 1}`}
-                />
-              </PaginationItem>
-            )}
+			<div className="mt-6 flex justify-center">
+				<Pagination>
+					<PaginationContent>
+						{page > 1 && (
+							<PaginationItem>
+								<PaginationPrevious href={`?search=${debouncedSearch}&page=${page - 1}`} />
+							</PaginationItem>
+						)}
 
-            {Array.from({ length: totalPages })
-              .map((_, idx) => idx + 1)
-              .filter((pageNumber) => {
-                if (
-                  pageNumber === 1 ||
-                  pageNumber === totalPages ||
-                  Math.abs(pageNumber - page) <= 1
-                ) {
-                  return true;
-                }
-                return false;
-              })
-              .reduce<(number | "ellipsis")[]>(
-                (acc, pageNumber, idx, array) => {
-                  if (idx > 0 && pageNumber !== array[idx - 1] + 1) {
-                    acc.push("ellipsis");
-                  }
-                  acc.push(pageNumber);
-                  return acc;
-                },
-                []
-              )
-              .map((item, idx) =>
-                item === "ellipsis" ? (
-                  <PaginationItem key={`ellipsis-${idx}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : (
-                  <PaginationItem key={item}>
-                    <PaginationLink
-                      href={`?search=${debouncedSearch}&page=${item}`}
-                      isActive={item === page}
-                    >
-                      {item}
-                    </PaginationLink>
-                  </PaginationItem>
-                )
-              )}
+						{Array.from({ length: totalPages })
+							.map((_, idx) => idx + 1)
+							.filter((pageNumber) => {
+								if (pageNumber === 1 || pageNumber === totalPages || Math.abs(pageNumber - page) <= 1) {
+									return true
+								}
+								return false
+							})
+							.reduce<(number | "ellipsis")[]>((acc, pageNumber, idx, array) => {
+								if (idx > 0 && pageNumber !== array[idx - 1] + 1) {
+									acc.push("ellipsis")
+								}
+								acc.push(pageNumber)
+								return acc
+							}, [])
+							.map((item, idx) =>
+								item === "ellipsis" ? (
+									<PaginationItem key={`ellipsis-${idx}`}>
+										<PaginationEllipsis />
+									</PaginationItem>
+								) : (
+									<PaginationItem key={item}>
+										<PaginationLink href={`?search=${debouncedSearch}&page=${item}`} isActive={item === page}>
+											{item}
+										</PaginationLink>
+									</PaginationItem>
+								)
+							)}
 
-            {page < totalPages && (
-              <PaginationItem>
-                <PaginationNext
-                  href={`?search=${debouncedSearch}&page=${page + 1}`}
-                />
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
-      </div>
-    </div>
-  );
-};
+						{page < totalPages && (
+							<PaginationItem>
+								<PaginationNext href={`?search=${debouncedSearch}&page=${page + 1}`} />
+							</PaginationItem>
+						)}
+					</PaginationContent>
+				</Pagination>
+			</div>
+		</div>
+	)
+}
 
-export default Students;
+export default Students

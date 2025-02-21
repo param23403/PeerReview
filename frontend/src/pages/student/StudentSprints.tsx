@@ -53,14 +53,14 @@ function SprintCard({
 
   const statusLabel = () => {
     if (!isReviewOpen && !isPastSprintDueDate) {
-      return `Opens ${sprint.sprintDueDate.toLocaleDateString()}`;
+      return `Opens ${sprint?.sprintDueDate?.toLocaleDateString() ?? Date()}`;
     }
 
     if (!isReviewOpen && isPastSprintDueDate) {
-      return `Closed ${sprint.reviewDueDate.toLocaleDateString()}`;
+      return `Closed ${sprint?.reviewDueDate?.toLocaleDateString() ?? Date()}`;
     }
 
-    return `Due ${sprint.reviewDueDate.toLocaleDateString()} ${sprint.reviewDueDate.toLocaleTimeString()}`;
+    return `Due ${sprint?.reviewDueDate?.toLocaleDateString() ?? Date()} ${sprint?.reviewDueDate?.toLocaleTimeString() ?? Date()}`;
   };
 
   return (

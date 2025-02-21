@@ -10,6 +10,7 @@ import {
 import { ReviewGrid } from "../../components/ReviewGrid";
 import { Button } from "../../components/ui/button";
 import Spinner from "../../components/Spinner";
+import BackButton from "../../components/BackButton";
 
 interface SprintReview {
   reviewerId: string;
@@ -50,12 +51,7 @@ export default function ReviewView() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex items-center mb-4">
-        <Button onClick={handleBackClick} className="mr-4">
-          &lt; Back
-        </Button>
-      </div>
-
+      <BackButton useNavigateBack />
       <Card className="w-full">
         <CardHeader className="text-center">
           <CardTitle>
