@@ -15,7 +15,6 @@ import { AuthProvider } from "./auth/AuthContext";
 import StudentProtectedRoute from "./components/StudentProtectedRoute";
 import ProfessorProtectedRoute from "./components/ProfessorProtectedRoute";
 import ProfessorDashboard from "./pages/professor/ProfessorDashboard";
-import TeamCreation from "./pages/professor/TeamCreation";
 import Students from "./pages/professor/Students";
 import Teams from "./pages/professor/Teams";
 import TeamPage from "./pages/professor/TeamPage";
@@ -84,8 +83,8 @@ const router = createBrowserRouter([
             element: <ProfessorDashboard />,
           },
           {
-            path: "/team-creation",
-            element: <TeamCreation />,
+            path: "/manage-students",
+            element: <ManageStudents />,
           },
           {
             path: "/students",
@@ -106,10 +105,6 @@ const router = createBrowserRouter([
           {
             path: "/sprint/:sprintId/teams/:teamId",
             element: <TeamPage />,
-          },
-          {
-            path: "/manage-students",
-            element: <ManageStudents />,
           },
           {
             path: "/settings",

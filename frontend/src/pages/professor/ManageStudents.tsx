@@ -1,204 +1,120 @@
-import React, { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import axios from "axios";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
-import { toast } from "../../hooks/use-toast";
-import { Toaster } from "../../components/ui/toaster";
-import { useNavigate, useLocation } from "react-router-dom";
-import api from "../../api";
+import React, { useState, useRef } from "react"
+import { useMutation } from "@tanstack/react-query"
+import axios from "axios"
+import { Input } from "../../components/ui/input"
+import { Label } from "../../components/ui/label"
+import { Button } from "../../components/ui/button"
+import { Card } from "../../components/ui/card"
+import { toast } from "../../hooks/use-toast"
+import { Toaster } from "../../components/ui/toaster"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs"
+import { Loader2 } from "lucide-react"
+import api from "../../api"
+import AddStudent from "../../components/AddStudent"
+import RemoveStudent from "../../components/RemoveStudent"
 
 export default function ManageStudents() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const action = location.state?.action || "add"; //default to add student
+	const [file, setFile] = useState<File | null>(null)
+	const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const [formData, setFormData] = useState(
-    action === "add"
-      ? {
-          team: "",
-          firstName: "",
-          lastName: "",
-          computingID: "",
-          preferredPronouns: "",
-          githubID: "",
-          discordID: "",
-        }
-      : {
-          computingID: "",
-        }
-  );
+	const createTeamsMutation = useMutation({
+		mutationFn: async (file: File) => {
+			const formData = new FormData()
+			formData.append("file", file)
 
-  const mutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const endpoint =
-        action === "add"
-          ? `/students/add`
-          : `/students/remove`;
+			const response = await api.post("/teams/create", formData, {
+				headers: { "Content-Type": "multipart/form-data" },
+			})
+			return response.data
+		},
+		onSuccess: () => {
+			toast({
+				title: "Success",
+				description: "Teams created successfully!",
+				variant: "success",
+				duration: 3000,
+			})
+			setFile(null)
+			if (fileInputRef.current) {
+				fileInputRef.current.value = ""
+			}
+		},
+		onError: (error: unknown) => {
+			const errorMessage = axios.isAxiosError(error) && error.response?.data?.message ? error.response.data.message : "Unexpected error occurred."
+			toast({
+				title: "Error",
+				description: errorMessage,
+				variant: "destructive",
+				duration: 3000,
+			})
+		},
+	})
 
-      const response = await api.post(endpoint, data, {
-        headers: { "Content-Type": "application/json" },
-      });
-      return response.data;
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: `Student ${
-          action === "add" ? "added" : "removed"
-        } successfully!`,
-        variant: "success",
-        duration: 2000,
-      });
+	const handleSubmit = (event: React.FormEvent) => {
+		event.preventDefault()
+		if (file) {
+			createTeamsMutation.mutate(file)
+		} else {
+			toast({
+				title: "Error",
+				description: "Please select a CSV file before submitting.",
+				variant: "destructive",
+				duration: 3000,
+			})
+		}
+	}
 
-      setFormData(
-        action === "add"
-          ? {
-              team: "",
-              firstName: "",
-              lastName: "",
-              computingID: "",
-              preferredPronouns: "",
-              githubID: "",
-              discordID: "",
-            }
-          : {
-              computingID: "",
-            }
-      );
-    },
+	const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const selectedFile = event.target.files?.[0] || null
+		setFile(selectedFile)
+	}
 
-    onError: (error: unknown) => {
-      const errorMessage =
-        axios.isAxiosError(error) && error.response?.data?.message
-          ? error.response.data.message
-          : "Unexpected error occurred.";
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-        duration: 3000,
-      });
-    },
-  });
+	return (
+		<div className="bg-background text-foreground flex flex-col py-12">
+			<div className="container w-full max-w-3xl mx-auto">
+				<h1 className="text-2xl font-bold mb-4">Manage Students</h1>
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+				<Tabs defaultValue="upload" className="w-full">
+					<TabsList className="mx-auto justify-center space-x-4 mb-4">
+						<TabsTrigger value="upload">Upload CSV</TabsTrigger>
+						<TabsTrigger value="add">Add Student</TabsTrigger>
+						<TabsTrigger value="remove">Remove Student</TabsTrigger>
+					</TabsList>
 
-    if (
-      (action === "add" &&
-        (!formData.team ||
-          !formData.firstName ||
-          !formData.lastName ||
-          !formData.computingID)) ||
-      (action === "remove" && !formData.computingID)
-    ) {
-      toast({
-        title: "Error",
-        description: "Please fill out all required fields.",
-        variant: "destructive",
-        duration: 3000,
-      });
-      return;
-    }
-    mutation.mutate(formData);
-  };
+					{/* Upload CSV Tab */}
+					<TabsContent value="upload">
+						<Card className="p-6">
+							<Label htmlFor="fileUpload" className="block text-lg font-semibold mb-4">
+								Upload Team Assignments CSV
+							</Label>
+							<form onSubmit={handleSubmit}>
+								<Input id="fileUpload" type="file" accept=".csv" onChange={handleFileChange} className="mb-4" ref={fileInputRef} />
+								<Button type="submit" disabled={createTeamsMutation.isPending || !file}>
+									{createTeamsMutation.isPending ? (
+										<>
+											<Loader2 className="animate-spin mr-2" />
+											Creating Teams...
+										</>
+									) : (
+										"Create Teams"
+									)}
+								</Button>
+							</form>
+						</Card>
+					</TabsContent>
 
-  const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = event.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+					{/* Add Student Tab */}
+					<TabsContent value="add">
+						<AddStudent />
+					</TabsContent>
 
-  return (
-    <div className="bg-background text-foreground flex flex-col items-center py-12">
-      <Card className="w-full max-w-2xl p-6">
-        <Label
-          htmlFor={action === "add" ? "addStudentForm" : "removeStudentForm"}
-          className="block text-lg font-semibold mb-4"
-        >
-          {action === "add" ? "Add Student" : "Remove Student"}
-        </Label>
-        <form
-          onSubmit={handleSubmit}
-          id={action === "add" ? "addStudentForm" : "removeStudentForm"}
-        >
-          {action === "add" && (
-            <>
-              <Input
-                name="team"
-                placeholder="Team"
-                value={formData.team}
-                onChange={handleChange}
-                className="mb-4"
-              />
-              <Input
-                name="firstName"
-                placeholder="First Name"
-                value={formData.firstName}
-                onChange={handleChange}
-                className="mb-4"
-              />
-              <Input
-                name="lastName"
-                placeholder="Last Name"
-                value={formData.lastName}
-                onChange={handleChange}
-                className="mb-4"
-              />
-              <Input
-                name="computingID"
-                placeholder="Computing ID"
-                value={formData.computingID}
-                onChange={handleChange}
-                className="mb-4"
-              />
-              <Input
-                name="preferredPronouns"
-                placeholder="Preferred Pronouns"
-                value={formData.preferredPronouns}
-                onChange={handleChange}
-                className="mb-4"
-              />
-              <Input
-                name="githubID"
-                placeholder="GitHub ID"
-                value={formData.githubID}
-                onChange={handleChange}
-                className="mb-4"
-              />
-              <Input
-                name="discordID"
-                placeholder="Discord ID"
-                value={formData.discordID}
-                onChange={handleChange}
-                className="mb-4"
-              />
-            </>
-          )}
-          {action === "remove" && (
-            <Input
-              name="computingID"
-              placeholder="Computing ID"
-              value={formData.computingID}
-              onChange={handleChange}
-              className="mb-4"
-            />
-          )}
-          <div className="flex justify-center items-center h-full">
-            <Button type="submit" className="ce">
-              {action === "add" ? "Save" : "Delete"}
-            </Button>
-          </div>
-        </form>
-      </Card>
-      <Toaster />
-    </div>
-  );
+					{/* Remove Student Tab */}
+					<TabsContent value="remove">
+						<RemoveStudent />
+					</TabsContent>
+				</Tabs>
+			</div>
+			<Toaster />
+		</div>
+	)
 }
