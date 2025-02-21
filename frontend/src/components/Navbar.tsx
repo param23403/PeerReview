@@ -36,7 +36,7 @@ const Navbar = () => {
     } else if (userData?.role === "student") {
       return [
         { name: "Sprints", href: "/sprints" },
-        { name: "Settings", href: "/settings" },
+        // { name: "Settings", href: "/settings" },
         {
           name: "Logout",
           href: "/",
