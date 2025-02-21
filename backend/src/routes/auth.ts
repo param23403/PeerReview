@@ -1,6 +1,5 @@
 import express, { Request, Response } from "express";
 import { db } from "../../netlify/functions/firebase";
-import { doc, setDoc } from "firebase/firestore";
 
 const router = express.Router();
 

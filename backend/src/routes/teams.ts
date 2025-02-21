@@ -3,7 +3,7 @@ import multer from "multer";
 import csvParser from "csv-parser";
 import { Readable } from "stream";
 import { db } from "../../netlify/functions/firebase";
-import { FieldPath } from "firebase-admin/firestore";
+import { authenticateUser } from "../../netlify/functions/middleware/auth";
 
 const router = express.Router();
 const upload = multer();
@@ -349,9 +349,9 @@ const searchTeamsBySprint = async (
   }
 };
 
-router.post("/create", upload.single("file"), createTeams);
-router.get("/search", searchTeams);
-router.get("/getTeam/:teamID", getTeam);
-router.get("/searchteambysprint", searchTeamsBySprint);
+router.post("/create", authenticateUser, upload.single("file"), createTeams);
+router.get("/search", authenticateUser, searchTeams);
+router.get("/getTeam/:teamID", authenticateUser, getTeam);
+router.get("/searchteambysprint", authenticateUser, searchTeamsBySprint);
 
 export default router;

@@ -9,6 +9,7 @@ import { toast } from "../../hooks/use-toast"
 import { Toaster } from "../../components/ui/toaster"
 import { To, useNavigate } from "react-router-dom"
 import { Loader2 } from "lucide-react"
+import api from "../../api"
 
 export default function TeamCreation() {
 	const [file, setFile] = useState<File | null>(null)
@@ -19,7 +20,7 @@ export default function TeamCreation() {
 			const formData = new FormData()
 			formData.append("file", file)
 
-			const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/teams/create`, formData, {
+			const response = await api.post("/teams/create", formData, {
 				headers: { "Content-Type": "multipart/form-data" },
 			})
 			return response.data

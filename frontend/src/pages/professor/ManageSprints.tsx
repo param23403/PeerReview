@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import api from "../../api";
 import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../auth/useAuth";
 
@@ -21,14 +22,14 @@ function SprintCard({
 }) {
   const statusLabel = () => {
     if (!isReviewOpen && !isPastSprintDueDate) {
-      return `Opens ${sprint.sprintDueDate.toLocaleDateString()}`;
+      return `Opens ${sprint?.sprintDueDate?.toLocaleDateString()}`;
     }
 
     if (!isReviewOpen && isPastSprintDueDate) {
-      return `Closed ${sprint.reviewDueDate.toLocaleDateString()}`;
+      return `Closed ${sprint?.reviewDueDate?.toLocaleDateString()}`;
     }
 
-    return `Due ${sprint.reviewDueDate.toLocaleDateString()} ${sprint.reviewDueDate.toLocaleTimeString()}`;
+    return `Due ${sprint?.reviewDueDate?.toLocaleDateString()} ${sprint?.reviewDueDate?.toLocaleTimeString()}`;
   };
 
   return (
@@ -47,53 +48,22 @@ function SprintCard({
 
 export default function ManageSprints() {
   const { loading: authLoading } = useAuth();
-  const [sprints, setSprints] = useState<Sprint[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!authLoading) {
-      const fetchSprints = async () => {
-        try {
-          const response = await fetch(
-            `${import.meta.env.VITE_BACKEND_URL}/sprints/getSprints`
-          );
+  const { data: sprints, error, isLoading } = useQuery({
+    queryKey: ["sprints"],
+    queryFn: async () => {
+      const response = await api.get("/sprints/getSprints");
+      return response.data.map((sprint: any) => ({
+        id: sprint.id || "",
+        name: sprint.name || "Unnamed Sprint",
+        sprintDueDate: new Date(sprint.sprintDueDate?._seconds * 1000 || Date.now()),
+        reviewDueDate: new Date(sprint.reviewDueDate?._seconds * 1000 || Date.now()),
+      }));
+    },
+    enabled: !authLoading,
+  });
 
-          if (!response.ok) {
-            throw new Error("Failed to fetch sprints");
-          }
-
-          const sprintsData = await response.json();
-
-          if (Array.isArray(sprintsData)) {
-            setSprints(
-              sprintsData.map((sprint: any) => ({
-                id: sprint.id || "",
-                name: sprint.name || "Unnamed Sprint",
-                sprintDueDate: new Date(
-                  sprint.sprintDueDate?._seconds * 1000 || Date.now()
-                ),
-                reviewDueDate: new Date(
-                  sprint.reviewDueDate?._seconds * 1000 || Date.now()
-                ),
-              }))
-            );
-          } else {
-            throw new Error("Invalid sprint data format");
-          }
-        } catch (err: any) {
-          console.error("Error:", err);
-          setError("Failed to load sprints. Please retry.");
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchSprints();
-    }
-  }, [authLoading]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <p>Loading sprints...</p>
@@ -104,7 +74,7 @@ export default function ManageSprints() {
   if (error) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p>{error}</p>
+        <p>Failed to load sprints. Please retry.</p>
       </div>
     );
   }
@@ -114,19 +84,17 @@ export default function ManageSprints() {
       <div className="w-full max-w-3xl">
         <h1 className="text-2xl font-bold mb-4 text-center">Sprints</h1>
         <div className="space-y-8">
-          {sprints.map((sprint) => {
-            return (
-              <Link
-                to={`/edit-sprint/${sprint.id}`}
-                state={{ sprint }}
-                key={sprint.id}
-                className="block transition-shadow duration-200 hover:shadow-lg"
-                aria-label={`Edit Sprint ${sprint.id} details`}
-              >
-                <SprintCard sprint={sprint} />
-              </Link>
-            );
-          })}
+          {sprints.map((sprint: Sprint) => (
+            <Link
+              to={`/edit-sprint/${sprint.id}`}
+              state={{ sprint }}
+              key={sprint.id}
+              className="block transition-shadow duration-200 hover:shadow-lg"
+              aria-label={`Edit Sprint ${sprint.id} details`}
+            >
+              <SprintCard sprint={sprint} />
+            </Link>
+          ))}
         </div>
       </div>
     </div>

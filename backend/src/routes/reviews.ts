@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { db } from "../../netlify/functions/firebase";
-import { doc } from "firebase/firestore";
+import { authenticateUser } from "../../netlify/functions/middleware/auth";
 
 const router = express.Router();
 
@@ -84,9 +84,9 @@ const getReviews = async (req: Request, res: Response): Promise<void> => {
       revieweeName:
         studentData.get(review.reviewedTeammateId)?.name || "Unknown",
       reviewerComputingId:
-        studentData.get(review.reviewerId)?.computingId || "Unknown",
+        studentData.get(review.reviewerId)?.computingID || "Unknown",
       revieweeComputingId:
-        studentData.get(review.reviewedTeammateId)?.computingId || "Unknown",
+        studentData.get(review.reviewedTeammateId)?.computingID || "Unknown",
       team: studentData.get(review.reviewerId)?.team || "Unassigned",
     }));
 
@@ -294,17 +294,18 @@ const getReviewById = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-router.get("/getReviews/:reviewerId/:sprintId", getReviewsByReviewerAndSprint);
+router.get("/getReviews/:reviewerId/:sprintId", authenticateUser, getReviewsByReviewerAndSprint);
 
-router.post("/submitReview", submitReview);
+router.post("/submitReview", authenticateUser, submitReview);
 
 router.get(
   "/getReviewsForUserBySprint/:computingID/:sprintId",
+  authenticateUser,
   getReviewsForUserBySprint
 );
 
-router.get("/search", getReviews);
+router.get("/search", authenticateUser, getReviews);
 
-router.get("/getReviewById/:reviewId", getReviewById);
+router.get("/getReviewById/:reviewId", authenticateUser, getReviewById);
 
 export default router;

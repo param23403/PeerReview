@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { db } from "../../netlify/functions/firebase";
+import { authenticateUser } from "../../netlify/functions/middleware/auth";
 
 const router = express.Router();
 
@@ -192,9 +193,9 @@ const removeStudent = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-router.post("/add", addStudent);
-router.post("/remove", removeStudent);
-router.get("/search", searchStudents);
-router.get("/getStudent/:studentID", getStudent);
+router.post("/add", authenticateUser, addStudent);
+router.post("/remove", authenticateUser, removeStudent);
+router.get("/search", authenticateUser, searchStudents);
+router.get("/getStudent/:studentID", authenticateUser, getStudent);
 
 export default router;

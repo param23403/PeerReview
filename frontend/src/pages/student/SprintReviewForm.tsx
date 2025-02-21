@@ -15,6 +15,8 @@ import { Toaster } from "../../components/ui/toaster";
 import { ArrowLeft } from "lucide-react";
 import { Textarea } from "../../components/ui/textarea";
 import { Checkbox } from "../../components/ui/checkbox";
+import { useMutation } from "@tanstack/react-query";
+import api from "../../api";
 
 const options = [
   { label: "Never", value: "1" },
@@ -68,13 +70,27 @@ export default function SprintReviewForm() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const mutation = useMutation({
+    mutationFn: async (reviewData: FormData) => {
+      return api.post("/reviews/submitReview", reviewData);
+    },
+    onSuccess: () => {
+      setReviewSubmitted(true);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to submit review. Please try again.",
+        variant: "destructive",
+        duration: 3000,
+      });
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const validationFields: Omit<
-      FormData,
-      "improvementFeedback" | "strengthFeedback"
-    > = {
+    const validationFields: Omit<FormData, "improvementFeedback" | "strengthFeedback"> = {
       keptUpWithResponsibilities: formData.keptUpWithResponsibilities,
       helpedTeamMembers: formData.helpedTeamMembers,
       communicatedEffectively: formData.communicatedEffectively,
@@ -103,35 +119,9 @@ export default function SprintReviewForm() {
       ...formData,
     };
 
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/reviews/submitReview`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(reviewData),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to submit review");
-      }
-
-      const responseData = await response.json();
-
-      setReviewSubmitted(true);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to submit review. Please try again.",
-        variant: "destructive",
-        duration: 3000,
-      });
-      console.error("Submission error:", error);
-    }
+    mutation.mutate(reviewData);
   };
+
 
   if (review.reviewCompleted) {
     return (

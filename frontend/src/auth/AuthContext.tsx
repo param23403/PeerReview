@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, ReactNode } from "react"
 import { User, onAuthStateChanged } from "firebase/auth"
 import { auth } from "../firebase"
 import { useQuery } from "@tanstack/react-query"
-import axios from "axios"
+import api from "../api"
 
 interface UserData {
 	displayName?: string
@@ -40,7 +40,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 		queryKey: ["userData", user?.uid],
 		queryFn: async () => {
 			if (!user?.uid) return null
-			const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/auth/getUser/${user.uid}`)
+			const response = await api.get(`/auth/getUser/${user.uid}`, {
+				headers: { "Skip-Auth": "true" },
+			})
 			return response.data
 		},
 		enabled: !!user?.uid,
