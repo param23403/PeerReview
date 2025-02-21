@@ -43,7 +43,7 @@ function SprintCard({
           <h2 className="text-lg font-semibold">
             Sprint {sprint.id}: {sprint.name || "Unnamed Sprint"}
           </h2>
-          <p className="text-sm text-gray-500">{statusLabel()}</p>
+          <p className="text-sm text-muted-foreground">{statusLabel()}</p>
         </div>
       </CardContent>
     </Card>
@@ -94,7 +94,7 @@ export default function ChooseSprint() {
       <div className="w-full max-w-3xl">
         <h1 className="text-2xl font-bold mb-4 text-center">Select a Sprint</h1>
         <div className="space-y-8">
-          {sprints.map((sprint: Sprint) => (
+          {sprints?.map((sprint: Sprint) => (
             <Link
               to={`/sprint/${sprint.id}`}
               state={{ sprint }}

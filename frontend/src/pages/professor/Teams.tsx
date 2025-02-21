@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Link,
-  useNavigate,
   useParams,
   useSearchParams,
 } from "react-router-dom";
@@ -25,8 +24,8 @@ import {
 } from "../../components/ui/pagination";
 import Spinner from "../../components/Spinner";
 import TeamCard from "../../components/TeamCard";
-import { Button } from "../../components/ui/button";
 import api from "../../api";
+import BackButton from "../../components/BackButton";
 
 const fetchTeams = async ({
   searchTerm,
@@ -59,7 +58,6 @@ const Teams = () => {
   const { sprintId } = useParams<{ sprintId: string }>();
   const sprintID = sprintId || "";
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
-  const navigate = useNavigate();
   const severity = searchParams.get("severity") || "";
   const severityData: string[] = ["bad", "medium", "good", "not filled out"];
   useEffect(() => {
@@ -91,18 +89,10 @@ const Teams = () => {
       severity: value,
     });
   };
-  const handleBackClick = () => {
-    if (window.history.length > 2) {
-      navigate(-1);
-    } else {
-      navigate("/", { replace: true });
-    }
-  };
+
   return (
     <div className="container mx-auto p-6">
-      <Button onClick={handleBackClick} className="mr-4">
-        &lt; Back
-      </Button>
+      <BackButton useNavigateBack />
       <h1 className="text-3xl font-bold mb-4 text-primary">Teams Search</h1>
 
       <div className="mb-6 flex gap-4">
