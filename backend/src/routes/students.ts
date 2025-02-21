@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express"
+import admin from "firebase-admin"
 import { db } from "../../netlify/functions/firebase"
 import { authenticateUser } from "../../netlify/functions/middleware/auth"
 
@@ -74,6 +75,12 @@ const addStudent = async (req: Request, res: Response): Promise<void> => {
 
 	try {
 		const studentsRef = db.collection("students")
+		const studentDoc = await studentsRef.doc(computingID).get()
+
+		if (studentDoc.exists) {
+			res.status(409).json({ message: "Student with this Computing ID already exists." })
+			return
+		}
 
 		await studentsRef.doc(computingID).set({
 			team,
@@ -126,35 +133,56 @@ const removeStudent = async (req: Request, res: Response): Promise<void> => {
 	const { computingID } = req.body
 
 	try {
-		const studentsRef = db.collection("students")
-		const snapshot = await studentsRef.where("computingID", "==", computingID).get()
+		const [studentSnapshot, reviewsSnapshot, reviewedSnapshot, userSnapshot] = await Promise.all([
+			db.collection("students").where("computingID", "==", computingID).get(),
+			db.collection("reviews").where("reviewerId", "==", computingID).get(),
+			db.collection("reviews").where("reviewedTeammateId", "==", computingID).get(),
+			db.collection("users").where("studentId", "==", computingID).get(),
+		])
 
-		if (snapshot.empty) {
+		if (studentSnapshot.empty) {
 			res.status(404).json({ message: "Student not found" })
 			return
 		}
 
 		const batch = db.batch()
 		let teamID = ""
+		let studentName = ""
+		let authUID = ""
 
-		snapshot.forEach((doc) => {
+		studentSnapshot.forEach((doc) => {
 			const studentData = doc.data()
 			teamID = studentData.team
-			batch.delete(studentsRef.doc(doc.id))
+			studentName = studentData.name
+			batch.delete(doc.ref)
 		})
 
-		const teamRef = db.collection("teams").doc(teamID)
-		const teamDoc = await teamRef.get()
+		if (teamID) {
+			const teamRef = db.collection("teams").doc(teamID)
+			const teamDoc = await teamRef.get()
 
-		if (teamDoc.exists) {
-			const currentStudents = teamDoc.data()?.students || []
-			const updatedStudents = currentStudents.filter((s: any) => s.computingID !== computingID)
-
-			batch.update(teamRef, { students: updatedStudents })
+			if (teamDoc.exists) {
+				const currentStudents = teamDoc.data()?.students || []
+				const updatedStudents = currentStudents.filter((s: any) => s.computingID !== computingID)
+				batch.update(teamRef, { students: updatedStudents })
+			}
 		}
 
+		reviewsSnapshot.forEach((doc) => batch.delete(doc.ref))
+		reviewedSnapshot.forEach((doc) => batch.delete(doc.ref))
+
+		userSnapshot.forEach((doc) => {
+			authUID = doc.id
+			batch.delete(doc.ref)
+		})
+
 		await batch.commit()
-		res.status(200).json({ message: "Student removed successfully" })
+
+		if (authUID) {
+			await admin.auth().deleteUser(authUID)
+		}
+
+		res.status(200).json({ message: `Student ${studentName} removed successfully.` })
 	} catch (error) {
 		console.error("Error removing student:", error)
 		res.status(500).json({ message: "Failed to remove student" })
