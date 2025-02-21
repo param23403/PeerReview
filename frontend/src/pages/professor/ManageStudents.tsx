@@ -8,6 +8,7 @@ import { Card } from "../../components/ui/card";
 import { toast } from "../../hooks/use-toast";
 import { Toaster } from "../../components/ui/toaster";
 import { useNavigate, useLocation } from "react-router-dom";
+import api from "../../api";
 
 export default function ManageStudents() {
   const navigate = useNavigate();
@@ -34,9 +35,10 @@ export default function ManageStudents() {
     mutationFn: async (data: typeof formData) => {
       const endpoint =
         action === "add"
-          ? `${import.meta.env.VITE_BACKEND_URL}/students/add`
-          : `${import.meta.env.VITE_BACKEND_URL}/students/remove`;
-      const response = await axios.post(endpoint, data, {
+          ? `/students/add`
+          : `/students/remove`;
+
+      const response = await api.post(endpoint, data, {
         headers: { "Content-Type": "application/json" },
       });
       return response.data;
@@ -66,10 +68,6 @@ export default function ManageStudents() {
               computingID: "",
             }
       );
-
-      setTimeout(() => {
-        navigate("/viewsprints");
-      }, 2000);
     },
 
     onError: (error: unknown) => {

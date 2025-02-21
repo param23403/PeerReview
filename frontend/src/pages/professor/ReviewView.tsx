@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import api from "../../api";
 import {
   Card,
   CardHeader,
@@ -27,11 +28,6 @@ interface SprintReview {
 
 export default function ReviewView() {
   const { reviewId } = useParams<{ reviewId: string }>();
-
-  const [review, setReview] = useState<SprintReview>();
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
   const navigate = useNavigate();
 
   const handleBackClick = () => {
@@ -42,35 +38,14 @@ export default function ReviewView() {
     }
   };
 
-  useEffect(() => {
-    async function fetchReview() {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(
-          `${
-            import.meta.env.VITE_BACKEND_URL
-          }/reviews/getReviewById/${reviewId}`
-        );
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to fetch review");
-        }
-        const data = await response.json();
-        setReview(data.review || []);
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
-        setError(
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred."
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchReview();
-  }, [reviewId]);
+  const { data: review, error, isLoading } = useQuery({
+    queryKey: ["review", reviewId],
+    queryFn: async () => {
+      const response = await api.get(`/reviews/getReviewById/${reviewId}`);
+      return response.data.review;
+    },
+    enabled: !!reviewId,
+  });
 
   return (
     <div className="container mx-auto p-6">
@@ -88,10 +63,10 @@ export default function ReviewView() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {isLoading ? (
             <p>Loading...</p>
           ) : error ? (
-            <p className="text-red-500">{error}</p>
+            <p className="text-red-500">Failed to load review.</p>
           ) : review ? (
             <ReviewGrid reviews={[review]} />
           ) : (

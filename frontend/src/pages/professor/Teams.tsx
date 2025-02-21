@@ -6,7 +6,6 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import axios from "axios";
 import { Input } from "../../components/ui/input";
 import {
   Select,
@@ -27,6 +26,7 @@ import {
 import Spinner from "../../components/Spinner";
 import TeamCard from "../../components/TeamCard";
 import { Button } from "../../components/ui/button";
+import api from "../../api";
 
 const fetchTeams = async ({
   searchTerm,
@@ -41,12 +41,12 @@ const fetchTeams = async ({
   sprintID: string;
   severity: string;
 }) => {
-  const response = await axios.get(
-    `${import.meta.env.VITE_BACKEND_URL}/teams/searchteambysprint`,
+  const response = await api.get(
+    "/teams/searchteambysprint",
     {
       params: { search: searchTerm, page, limit, sprintID, severity },
     }
-  );
+  )
   return response.data;
 };
 

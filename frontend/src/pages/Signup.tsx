@@ -13,6 +13,7 @@ import { FirebaseError } from "firebase/app"
 import { getFirebaseErrorMessage } from "../lib/utils"
 import { useMutation } from "@tanstack/react-query"
 import axios from "axios"
+import api from "../api"
 
 interface SignUpFormData {
 	firstName: string
@@ -38,7 +39,9 @@ export default function SignUp() {
 
 	const addUserToFirestore = useMutation({
 		mutationFn: async (userData: { uid: string; firstName: string; lastName: string; computingId: string; email: string }) => {
-			const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/auth/addUser`, userData)
+			const response = await api.post("/auth/addUser", userData, {
+				headers: { "Skip-Auth": "true" },
+			})
 			return response.data
 		},
 		onSuccess: () => {

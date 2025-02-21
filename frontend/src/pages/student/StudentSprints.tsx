@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import api from "../../api";
 import { Card, CardContent } from "../../components/ui/card";
 import { CheckCircle, XCircle, ChevronRight, Lock } from "lucide-react";
 import { useAuth } from "../../auth/useAuth";
@@ -16,9 +17,7 @@ interface Sprint {
 const getSprintStatus = (sprint: Sprint) => {
   const currentDate = new Date();
   const isPastSprintDueDate = currentDate > sprint.sprintDueDate;
-  const isReviewOpen =
-    isPastSprintDueDate && currentDate <= sprint.reviewDueDate;
-
+  const isReviewOpen = isPastSprintDueDate && currentDate <= sprint.reviewDueDate;
   return { isPastSprintDueDate, isReviewOpen };
 };
 
@@ -41,11 +40,7 @@ function SprintCard({
 
     return (
       <>
-        <Icon
-          className={`w-6 h-6 ${
-            isComplete ? "text-green-500" : "text-red-500"
-          }`}
-        />
+        <Icon className={`w-6 h-6 ${isComplete ? "text-green-500" : "text-red-500"}`} />
         <span className="mr-2">{isComplete ? "Complete" : "Incomplete"}</span>
       </>
     );
@@ -88,56 +83,25 @@ function SprintCard({
 
 export default function StudentSprints() {
   const { userData, loading: authLoading } = useAuth();
-  const [sprints, setSprints] = useState<Sprint[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const studentId = userData?.studentId;
-    if (!authLoading && studentId) {
-      const fetchSprints = async () => {
-        try {
-          const response = await fetch(
-            `${
-              import.meta.env.VITE_BACKEND_URL
-            }/sprints/getStudentSprints/${studentId}`
-          );
+  const { data: sprints, isLoading, error } = useQuery({
+    queryKey: ["studentSprints", userData?.studentId],
+    queryFn: async () => {
+      const studentId = userData?.studentId;
+      if (!studentId) throw new Error("Student ID is required");
 
-          if (!response.ok) {
-            throw new Error("Failed to fetch sprints");
-          }
-
-          const sprintsData = await response.json();
-
-          if (Array.isArray(sprintsData)) {
-            setSprints(
-              sprintsData.map((sprint: any) => ({
-                id: sprint.id || "",
-                name: sprint.name || "Unnamed Sprint",
-                sprintDueDate: new Date(
-                  sprint.sprintDueDate?._seconds * 1000 || Date.now()
-                ),
-                reviewDueDate: new Date(
-                  sprint.reviewDueDate?._seconds * 1000 || Date.now()
-                ),
-                completedReviews: sprint.completedReviews ?? 0,
-                totalReviews: sprint.totalReviews ?? 0,
-              }))
-            );
-          } else {
-            throw new Error("Invalid sprint data format");
-          }
-        } catch (err: any) {
-          console.error("Error:", err);
-          setError("Failed to load sprints. Please retry.");
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      fetchSprints();
-    }
-  }, [authLoading, userData]);
+      const response = await api.get(`/sprints/getStudentSprints/${studentId}`);
+      return response.data.map((sprint: any) => ({
+        id: sprint.id || "",
+        name: sprint.name || "Unnamed Sprint",
+        sprintDueDate: new Date(sprint.sprintDueDate?._seconds * 1000 || Date.now()),
+        reviewDueDate: new Date(sprint.reviewDueDate?._seconds * 1000 || Date.now()),
+        completedReviews: sprint.completedReviews ?? 0,
+        totalReviews: sprint.totalReviews ?? 0,
+      }));
+    },
+    enabled: !!userData?.studentId,
+  });
 
   if (authLoading) {
     return (
@@ -147,7 +111,7 @@ export default function StudentSprints() {
     );
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <p>Loading sprints...</p>
@@ -158,7 +122,7 @@ export default function StudentSprints() {
   if (error) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p>{error}</p>
+        <p>Failed to load sprints. Please retry.</p>
       </div>
     );
   }
@@ -168,9 +132,8 @@ export default function StudentSprints() {
       <div className="w-full max-w-3xl">
         <h1 className="text-2xl font-bold mb-4 text-center">Sprints</h1>
         <div className="space-y-8">
-          {sprints.map((sprint) => {
-            const { isPastSprintDueDate, isReviewOpen } =
-              getSprintStatus(sprint);
+          {sprints?.map((sprint: Sprint) => {
+            const { isPastSprintDueDate, isReviewOpen } = getSprintStatus(sprint);
 
             return isReviewOpen ? (
               <Link
@@ -180,19 +143,11 @@ export default function StudentSprints() {
                 className="block transition-shadow duration-200 hover:shadow-lg"
                 aria-label={`View details for Sprint ${sprint.id}`}
               >
-                <SprintCard
-                  sprint={sprint}
-                  isPastSprintDueDate={isPastSprintDueDate}
-                  isReviewOpen={isReviewOpen}
-                />
+                <SprintCard sprint={sprint} isPastSprintDueDate={isPastSprintDueDate} isReviewOpen={isReviewOpen} />
               </Link>
             ) : (
               <div key={sprint.id} className="cursor-not-allowed">
-                <SprintCard
-                  sprint={sprint}
-                  isPastSprintDueDate={isPastSprintDueDate}
-                  isReviewOpen={isReviewOpen}
-                />
+                <SprintCard sprint={sprint} isPastSprintDueDate={isPastSprintDueDate} isReviewOpen={isReviewOpen} />
               </div>
             );
           })}

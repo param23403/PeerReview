@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import axios from "axios";
 import { Input } from "../../components/ui/input";
 import {
   Select,
@@ -30,6 +29,7 @@ import {
 import Spinner from "../../components/Spinner";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Label } from "../../components/ui/label";
+import api from "../../api";
 
 const fetchReviews = async ({
   searchTerm,
@@ -44,19 +44,17 @@ const fetchReviews = async ({
   page: number;
   limit: number;
 }) => {
-  const response = await axios.get(
-    `${import.meta.env.VITE_BACKEND_URL}/reviews/search`,
+  const response = await api.get(
+    "/reviews/search",
     {
       params: { search: searchTerm, sprintId, redFlagsOnly, page, limit },
     }
-  );
+  )
   return response.data;
 };
 
 const fetchSprints = async () => {
-  const response = await axios.get(
-    `${import.meta.env.VITE_BACKEND_URL}/sprints/getSprints`
-  );
+  const response = await api.get("/sprints/getSprints")
   return response.data;
 };
 

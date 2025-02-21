@@ -10,6 +10,7 @@ export const authenticateUser = async (req: AuthenticatedRequest, res: Response,
 	const authHeader = req.headers.authorization
 
 	if (!authHeader || !authHeader.startsWith("Bearer ")) {
+		console.log("no token provided")
 		res.status(401).json({ error: "Unauthorized: No token provided" })
 		return
 	}

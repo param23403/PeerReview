@@ -20,6 +20,7 @@ import { FirebaseError } from "firebase/app";
 import { getFirebaseErrorMessage } from "../lib/utils";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import api from "../api";
 
 interface ProfessorSignUpFormData {
   firstName: string;
@@ -57,10 +58,9 @@ export default function ProfessorSignUp() {
       email: string;
       computingId: string;
     }) => {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/auth/addProfessor`,
-        userData
-      );
+      const response = await api.post("/auth/addProfessor", userData, {
+        headers: { "Skip-Auth": "true" },
+      });
       return response.data;
     },
     onSuccess: () => {
