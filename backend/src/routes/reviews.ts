@@ -84,9 +84,9 @@ const getReviews = async (req: Request, res: Response): Promise<void> => {
       revieweeName:
         studentData.get(review.reviewedTeammateId)?.name || "Unknown",
       reviewerComputingId:
-        studentData.get(review.reviewerId)?.computingId || "Unknown",
+        studentData.get(review.reviewerId)?.computingID || "Unknown",
       revieweeComputingId:
-        studentData.get(review.reviewedTeammateId)?.computingId || "Unknown",
+        studentData.get(review.reviewedTeammateId)?.computingID || "Unknown",
       team: studentData.get(review.reviewerId)?.team || "Unassigned",
     }));
 
