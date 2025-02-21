@@ -111,7 +111,7 @@ export default function StudentSprints() {
   if (authLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p>Loading authentication...</p>
+        <Spinner />
       </div>
     );
   }

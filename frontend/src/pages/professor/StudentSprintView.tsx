@@ -4,6 +4,7 @@ import api from "../../api";
 import { Card, CardHeader, CardTitle, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { ReviewGrid } from "../../components/ReviewGrid";
+import Spinner from "../../components/Spinner";
 
 interface SprintReview {
   reviewerId: string;
@@ -58,7 +59,7 @@ export default function StudentSprintView() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p>Loading...</p>
+            <Spinner />
           ) : error ? (
             <p className="text-red-500">{error instanceof Error ? error.message : "An unexpected error occurred."}</p>
           ) : data?.reviews.length > 0 ? (

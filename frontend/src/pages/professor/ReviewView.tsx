@@ -9,6 +9,7 @@ import {
 } from "../../components/ui/card";
 import { ReviewGrid } from "../../components/ReviewGrid";
 import { Button } from "../../components/ui/button";
+import Spinner from "../../components/Spinner";
 
 interface SprintReview {
   reviewerId: string;
@@ -64,7 +65,7 @@ export default function ReviewView() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p>Loading...</p>
+            <Spinner />
           ) : error ? (
             <p className="text-red-500">Failed to load review.</p>
           ) : review ? (

@@ -4,10 +4,7 @@ import { useAuth } from "../auth/useAuth";
 const PublicRoute = () => {
   const { user, userData, loading } = useAuth();
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-  if (user) {
+  if (user &&   !loading) {
     if (userData?.role === "student") {
       return <Navigate to="/sprints" replace />;
     } else if (userData?.role === "professor") {
