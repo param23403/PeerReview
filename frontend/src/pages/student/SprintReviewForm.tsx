@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -52,8 +52,7 @@ const evaluationQuestions = [
 
 export default function SprintReviewForm() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { review, sprint } = location.state || {};
+  const { review } = location.state || {};
 
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
@@ -82,10 +81,6 @@ export default function SprintReviewForm() {
     strengthFeedback: "",
     isFlagged: false,
   });
-
-  const handleBack = () => {
-    navigate(`/sprints/${review.sprintId}/reviews`, { state: { sprint } });
-  };
 
   const handleInputChange = (name: string, value: string | boolean) => {
     setFormData((prev) => ({

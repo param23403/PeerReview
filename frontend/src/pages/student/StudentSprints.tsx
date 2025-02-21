@@ -4,6 +4,7 @@ import api from "../../api";
 import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../auth/useAuth";
 import { FaLock, FaCheckCircle, FaTimesCircle, FaChevronRight } from "react-icons/fa";
+import Spinner from "../../components/Spinner";
 
 interface Sprint {
   id: string;
@@ -118,7 +119,7 @@ export default function StudentSprints() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p>Loading sprints...</p>
+        <Spinner />
       </div>
     );
   }

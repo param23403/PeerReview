@@ -5,6 +5,7 @@ import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../auth/useAuth";
 import { FaCheckCircle, FaTimesCircle, FaChevronRight } from "react-icons/fa";
 import BackButton from "../../components/BackButton";
+import Spinner from "../../components/Spinner";
 
 interface Review {
   id: string;
@@ -35,7 +36,7 @@ export default function SprintReviews() {
   if (authLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p>Loading authentication...</p>
+        <Spinner />
       </div>
     );
   }
@@ -43,7 +44,7 @@ export default function SprintReviews() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p>Loading reviews...</p>
+        <Spinner />
       </div>
     );
   }
