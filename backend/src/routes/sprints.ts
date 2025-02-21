@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import { db } from "../../netlify/functions/firebase";
+import { authenticateUser } from "../../netlify/functions/middleware/auth";
 
 const router = express.Router();
 
@@ -167,9 +168,9 @@ const updateSprint = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-router.get("/getSprints", getSprints);
-router.get("/getSprint/:sprintId", getSprint);
-router.get("/getStudentSprints/:reviewerId", getStudentSprints);
+router.get("/getSprints", authenticateUser, getSprints);
+router.get("/getSprint/:sprintId", authenticateUser, getSprint);
+router.get("/getStudentSprints/:reviewerId", authenticateUser, getStudentSprints);
 
 router.post("/updateSprint", updateSprint);
 

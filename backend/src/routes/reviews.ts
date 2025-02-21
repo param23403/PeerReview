@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { db } from "../../netlify/functions/firebase";
-import { doc } from "firebase/firestore";
+import { authenticateUser } from "../../netlify/functions/middleware/auth";
 
 const router = express.Router();
 
@@ -294,17 +294,18 @@ const getReviewById = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-router.get("/getReviews/:reviewerId/:sprintId", getReviewsByReviewerAndSprint);
+router.get("/getReviews/:reviewerId/:sprintId", authenticateUser, getReviewsByReviewerAndSprint);
 
-router.post("/submitReview", submitReview);
+router.post("/submitReview", authenticateUser, submitReview);
 
 router.get(
   "/getReviewsForUserBySprint/:computingID/:sprintId",
+  authenticateUser,
   getReviewsForUserBySprint
 );
 
-router.get("/search", getReviews);
+router.get("/search", authenticateUser, getReviews);
 
-router.get("/getReviewById/:reviewId", getReviewById);
+router.get("/getReviewById/:reviewId", authenticateUser, getReviewById);
 
 export default router;
