@@ -22,14 +22,14 @@ function SprintCard({
 }) {
   const statusLabel = () => {
     if (!isReviewOpen && !isPastSprintDueDate) {
-      return `Opens ${sprint?.sprintDueDate?.toLocaleDateString()}`;
+      return `Opens ${sprint?.sprintDueDate?.toLocaleDateString() ?? Date()}`;
     }
 
     if (!isReviewOpen && isPastSprintDueDate) {
-      return `Closed ${sprint?.reviewDueDate?.toLocaleDateString()}`;
+      return `Closed ${sprint?.reviewDueDate?.toLocaleDateString() ?? Date()}`;
     }
 
-    return `Due ${sprint?.reviewDueDate?.toLocaleDateString()} ${sprint?.reviewDueDate?.toLocaleTimeString()}`;
+    return `Due ${sprint?.reviewDueDate?.toLocaleDateString() ?? Date()} ${sprint?.reviewDueDate?.toLocaleTimeString() ?? Date()}`;
   };
 
   return (
@@ -82,9 +82,9 @@ export default function ManageSprints() {
   return (
     <div className="container mx-auto p-4 flex justify-center">
       <div className="w-full max-w-3xl">
-        <h1 className="text-2xl font-bold mb-4 text-center">Sprints</h1>
+        <h1 className="text-2xl font-bold mb-4 text-center">Edit Sprints</h1>
         <div className="space-y-8">
-          {sprints.map((sprint: Sprint) => (
+          {sprints?.map((sprint: Sprint) => (
             <Link
               to={`/edit-sprint/${sprint.id}`}
               state={{ sprint }}
