@@ -20,6 +20,8 @@
 		--accent-foreground: 225 5% 15%;
 		--destructive: 0 50% 50%;
 		--destructive-foreground: 225 5% 90%;
+		--success: 140 45% 45%; /* Added success color */
+		--success-foreground: 140 95% 10%; /* Success foreground */
 		--border: 225 21% 82%;
 		--input: 225 21% 50%;
 		--ring: 225 36.4% 21.6%;
@@ -42,6 +44,8 @@
 		--accent-foreground: 225 5% 90%;
 		--destructive: 0 50% 50%;
 		--destructive-foreground: 225 5% 90%;
+		--success: 140 45% 35%; /* Dark mode success */
+		--success-foreground: 140 95% 90%;
 		--border: 225 21% 50%;
 		--input: 225 21% 50%;
 		--ring: 225 36.4% 21.6%;

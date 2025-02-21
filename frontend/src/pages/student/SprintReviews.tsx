@@ -1,9 +1,10 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../api";
 import { Card, CardContent } from "../../components/ui/card";
-import { CheckCircle, XCircle, ChevronRight } from "lucide-react";
 import { useAuth } from "../../auth/useAuth";
+import { FaCheckCircle, FaTimesCircle, FaChevronRight } from "react-icons/fa";
+import BackButton from "../../components/BackButton";
 
 interface Review {
   id: string;
@@ -58,6 +59,7 @@ export default function SprintReviews() {
   return (
     <div className="container mx-auto p-4 flex justify-center">
       <div className="w-full max-w-3xl">
+        <BackButton to="/sprints" />
         <h1 className="text-2xl font-bold mb-4 text-center">
           Sprint {sprint?.id} - Submit reviews for your team members
         </h1>
@@ -73,18 +75,18 @@ export default function SprintReviews() {
                 <CardContent className="p-4 flex justify-between items-center">
                   <div>
                     <h2 className="font-semibold">{review.reviewedTeammateName}</h2>
-                    <p className="text-sm text-gray-500">({review.reviewedTeammateId})</p>
+                    <p className="text-sm text-muted-foreground">({review.reviewedTeammateId})</p>
                   </div>
                   <div className="flex items-center">
                     {review.reviewCompleted ? (
-                      <CheckCircle className="text-green-500 mr-2" />
+                      <FaCheckCircle className="text-success mr-2 w-5 h-5" />
                     ) : (
-                      <XCircle className="text-red-500 mr-2" />
+                      <FaTimesCircle className="text-destructive mr-2 w-5 h-5" />
                     )}
-                    <span className="mr-2">
+                    <span className="mr-2 text-muted-foreground">
                       {review.reviewCompleted ? "Submitted" : "Incomplete"}
                     </span>
-                    <ChevronRight className="text-gray-400" />
+                    <FaChevronRight className="text-muted-foreground w-5 h-5" />
                   </div>
                 </CardContent>
               </Card>

@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../api";
 import { Card, CardContent } from "../../components/ui/card";
-import { CheckCircle, XCircle, ChevronRight, Lock } from "lucide-react";
 import { useAuth } from "../../auth/useAuth";
+import { FaLock, FaCheckCircle, FaTimesCircle, FaChevronRight } from "react-icons/fa";
 
 interface Sprint {
   id: string;
@@ -32,15 +32,19 @@ function SprintCard({
 }) {
   const statusIcon = () => {
     if (!isReviewOpen) {
-      return <Lock className="text-gray-500 w-6 h-6" />;
+      return <FaLock className="text-muted-foreground w-6 h-6" />;
     }
 
     const isComplete = sprint.completedReviews === sprint.totalReviews;
-    const Icon = isComplete ? CheckCircle : XCircle;
+    const Icon = isComplete ? FaCheckCircle : FaTimesCircle;
 
     return (
       <>
-        <Icon className={`w-6 h-6 ${isComplete ? "text-green-500" : "text-red-500"}`} />
+        <Icon
+          className={`w-6 h-6 ${
+            isComplete ? "text-success" : "text-destructive"
+          }`}
+        />
         <span className="mr-2">{isComplete ? "Complete" : "Incomplete"}</span>
       </>
     );
@@ -65,16 +69,16 @@ function SprintCard({
           <h2 className="text-lg font-semibold">
             Sprint {sprint.id}: {sprint.name || "Unnamed Sprint"}
           </h2>
-          <p className="text-sm text-gray-500">{statusLabel()}</p>
+          <p className="text-sm text-muted-foreground">{statusLabel()}</p>
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2">
             {statusIcon()}
-            <span className="text-base text-gray-500">
+            <span className="text-base text-muted-foreground">
               {sprint.completedReviews ?? 0}/{sprint.totalReviews ?? 0}
             </span>
           </div>
-          {isReviewOpen && <ChevronRight className="text-gray-400 w-6 h-6" />}
+          {isReviewOpen && <FaChevronRight className="text-muted-foreground w-6 h-6" />}
         </div>
       </CardContent>
     </Card>
