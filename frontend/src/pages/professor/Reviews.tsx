@@ -29,6 +29,7 @@ import {
 import Spinner from "../../components/Spinner";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Label } from "../../components/ui/label";
+import { FaFlag } from "react-icons/fa";
 import api from "../../api";
 
 const fetchReviews = async ({
@@ -219,7 +220,7 @@ const Reviews = () => {
                   </TableCell>
                   <TableCell>{review.team || "Unassigned"}</TableCell>
                   <TableCell>{review.sprintId || "N/A"}</TableCell>
-                  <TableCell>{review.isFlagged ? "Yes" : "No"}</TableCell>
+                  <TableCell>{review.isFlagged && <FaFlag className="text-destructive" />}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
