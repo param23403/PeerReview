@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../api";
 import { Card, CardContent } from "../../components/ui/card";
@@ -58,13 +58,13 @@ export default function SprintReviews() {
   }
 
   return (
-    <div className="container mx-auto p-4 flex justify-center">
+    <div className="container mx-auto w-full max-w-3xl py-4">
       <div className="w-full max-w-3xl">
         <BackButton to="/sprints" />
-        <h1 className="text-2xl font-bold mb-4 text-center">
+        <h1 className="text-2xl font-bold mb-4 text-center mx-4">
           Sprint {sprint?.id} - Submit reviews for your team members
         </h1>
-        <div className="space-y-8">
+        <div className="space-y-8 mx-4">
           {reviews?.map((review: Review) => (
             <Link
               to={`/review/${review.reviewerId}/${review.reviewedTeammateId}`}
