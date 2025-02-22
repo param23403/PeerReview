@@ -108,26 +108,10 @@ export default function StudentSprints() {
     enabled: !!userData?.studentId,
   });
 
-  if (authLoading) {
+  if (isLoading || authLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
         <Spinner />
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Failed to load sprints. Please retry.</p>
       </div>
     );
   }
