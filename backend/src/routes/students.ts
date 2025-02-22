@@ -98,7 +98,8 @@ const addStudent = async (req: Request, res: Response): Promise<void> => {
 			const currentStudents = teamDoc.data()?.students || []
 			currentStudents.push({
 				computingID,
-				name,
+				firstName,
+				lastName,
 				discordID,
 				preferredPronouns,
 				githubID,
@@ -112,7 +113,8 @@ const addStudent = async (req: Request, res: Response): Promise<void> => {
 				students: [
 					{
 						computingID,
-						name,
+						firstName,
+						lastName,
 						discordID,
 						preferredPronouns,
 						githubID,
