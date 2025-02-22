@@ -6,7 +6,7 @@ const router = express.Router();
 const getStudentByComputingId = async (computingId: string) => {
   const snapshot = await db
     .collection("students")
-    .where("computingId", "==", computingId)
+    .where("computingID", "==", computingId)
     .limit(1)
     .get();
 
