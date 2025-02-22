@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import api from "../../api";
 import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../auth/useAuth";
+import Spinner from "../../components/Spinner";
 
 interface Sprint {
   id: string;
@@ -21,15 +22,18 @@ function SprintCard({
   isReviewOpen?: boolean;
 }) {
   const statusLabel = () => {
+    const sprintDueDate =
+      sprint?.sprintDueDate instanceof Date ? sprint.sprintDueDate : new Date();
+    const reviewDueDate =
+      sprint?.reviewDueDate instanceof Date ? sprint.reviewDueDate : new Date();
+  
     if (!isReviewOpen && !isPastSprintDueDate) {
-      return `Opens ${sprint?.sprintDueDate?.toLocaleDateString() ?? Date()}`;
+      return `Opens ${sprintDueDate.toLocaleDateString()}`;
     }
-
     if (!isReviewOpen && isPastSprintDueDate) {
-      return `Closed ${sprint?.reviewDueDate?.toLocaleDateString() ?? Date()}`;
+      return `Closed ${reviewDueDate.toLocaleDateString()}`;
     }
-
-    return `Due ${sprint?.reviewDueDate?.toLocaleDateString() ?? Date()} ${sprint?.reviewDueDate?.toLocaleTimeString() ?? Date()}`;
+    return `Due ${reviewDueDate.toLocaleDateString()} ${reviewDueDate.toLocaleTimeString()}`;
   };
 
   return (
@@ -66,7 +70,7 @@ export default function ManageSprints() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p>Loading sprints...</p>
+        <Spinner />
       </div>
     );
   }
