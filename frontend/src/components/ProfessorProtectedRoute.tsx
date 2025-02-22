@@ -4,13 +4,10 @@ import { useAuth } from "../auth/useAuth";
 const ProfessorProtectedRoute = () => {
   const { user, userData, loading } = useAuth();
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-  if (!user) {
+  if (!user && !loading) {
     return <Navigate to="/" replace />;
   }
-  if (user) {
+  if (user && !loading) {
     if (userData?.role === "student") {
       return <Navigate to="/sprints" replace />;
     }

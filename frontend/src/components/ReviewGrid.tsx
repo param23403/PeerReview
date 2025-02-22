@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table"
 import { FeedbackModal } from "./FeedbackModal";
 import { Button } from "./ui/button";
+import { FaFlag } from "react-icons/fa";
 
 interface Review {
   reviewerId: string
@@ -68,7 +69,7 @@ export function ReviewGrid({ reviews }: ReviewGridProps) {
               <TableCell>{review.putInAppropriateTime}</TableCell>
               <TableCell>{review.compatibility}</TableCell>
               <TableCell>{review.overallEvaluationScore}</TableCell>
-              <TableCell>{review.isFlagged ? "Yes" : "No"}</TableCell>
+              <TableCell>{review.isFlagged ? <FaFlag className="text-destructive" /> : "No"}</TableCell>
               <TableCell>
                 <Button onClick={() => openFeedbackModal(review)}>View Feedback</Button>
               </TableCell>

@@ -6,14 +6,14 @@ const router = express.Router();
 const getStudentByComputingId = async (computingId: string) => {
   const snapshot = await db
     .collection("students")
-    .where("computingId", "==", computingId)
+    .where("computingID", "==", computingId)
     .limit(1)
     .get();
 
   if (snapshot.empty) return null;
 
   const studentDoc = snapshot.docs[0];
-  return { id: studentDoc.id, ...studentDoc.data() };
+  return { id: studentDoc.id, ...studentDoc.data() as any };
 };
 
 const getUserData = async (req: Request, res: Response): Promise<void> => {
@@ -40,16 +40,11 @@ const getUserData = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-const addUserToFirestore = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+const addUserToFirestore = async (req: Request, res: Response): Promise<void> => {
   const { uid, computingId, email } = req.body;
 
   if (!uid || !computingId || !email) {
-    res
-      .status(400)
-      .json({ message: "Missing required fields: uid, computingId, email" });
+    res.status(400).json({ message: "Missing required fields: uid, computingId, email" });
     return;
   }
 
@@ -57,36 +52,52 @@ const addUserToFirestore = async (
     const studentData = await getStudentByComputingId(computingId);
 
     if (!studentData) {
-      res
-        .status(404)
-        .json({ message: "Invalid computingId. No matching student found." });
+      res.status(404).json({ message: "Invalid computingId. No matching student found." });
       return;
     }
 
+    const batch = db.batch();
+
     const userDocRef = db.doc(`users/${uid}`);
-    await userDocRef.set({
+    batch.set(userDocRef, {
       studentId: studentData.id,
       email,
       role: "student",
       createdAt: new Date(),
     });
 
-    await db.doc(`students/${studentData.id}`).update({
+    const studentDocRef = db.doc(`students/${studentData.id}`);
+    batch.update(studentDocRef, {
       joinedAt: new Date(),
       active: true,
     });
 
-    res
-      .status(201)
-      .json({ message: "User data successfully added to Firestore" });
+    if (studentData.team) {
+      const teamRef = db.doc(`teams/${studentData.team}`);
+      const teamDoc = await teamRef.get();
+
+      if (teamDoc.exists) {
+        const teamData = teamDoc.data();
+        const updatedStudents = (teamData?.students || []).map((student: any) => {
+          if (student.computingID === computingId) {
+            return { ...student, active: true };
+          }
+          return student;
+        });
+
+        batch.update(teamRef, { students: updatedStudents });
+      }
+    }
+
+    await batch.commit();
+
+    res.status(201).json({ message: "User data successfully added to Firestore" });
   } catch (error) {
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
+    console.error("Error adding user data to Firestore:", error);
     res.status(500).json({
       message: "An unexpected error occurred",
-      error: errorMessage,
+      error: error instanceof Error ? error.message : "Unknown error",
     });
-    console.error("Error adding user data to Firestore:", error);
   }
 };
 

@@ -6,8 +6,8 @@
 	:root {
 		--background: 225 21% 95%;
 		--foreground: 225 5% 10%;
-		--card: 225 21% 90%;
-		--card-foreground: 225 5% 15%;
+		--card: 225 30% 85%;
+		--card-foreground: 225 10% 20%;
 		--popover: 225 21% 95%;
 		--popover-foreground: 225 95% 10%;
 		--primary: 225 36.4% 21.6%;
@@ -20,6 +20,8 @@
 		--accent-foreground: 225 5% 15%;
 		--destructive: 0 50% 50%;
 		--destructive-foreground: 225 5% 90%;
+		--success: 140 45% 45%;
+		--success-foreground: 140 95% 10%;
 		--border: 225 21% 82%;
 		--input: 225 21% 50%;
 		--ring: 225 36.4% 21.6%;
@@ -28,8 +30,8 @@
 	.dark {
 		--background: 225 21% 10%;
 		--foreground: 225 5% 90%;
-		--card: 225 21% 10%;
-		--card-foreground: 225 5% 90%;
+		--card: 225 30% 15%;
+		--card-foreground: 225 10% 80%;
 		--popover: 225 21% 5%;
 		--popover-foreground: 225 5% 90%;
 		--primary: 225 36.4% 21.6%;
@@ -42,6 +44,8 @@
 		--accent-foreground: 225 5% 90%;
 		--destructive: 0 50% 50%;
 		--destructive-foreground: 225 5% 90%;
+		--success: 140 45% 35%;
+		--success-foreground: 140 95% 90%;
 		--border: 225 21% 50%;
 		--input: 225 21% 50%;
 		--ring: 225 36.4% 21.6%;
@@ -52,6 +56,15 @@
 @layer base {
 	* {
 		@apply border-border;
+	}
+	body {
+		@apply bg-background text-foreground;
+	}
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
 	}
 	body {
 		@apply bg-background text-foreground;

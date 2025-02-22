@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import api from "../../api";
 import { Card, CardContent } from "../../components/ui/card";
 import { useAuth } from "../../auth/useAuth";
+import Spinner from "../../components/Spinner";
 
 interface Sprint {
   id: string;
@@ -21,16 +22,19 @@ function SprintCard({
   isReviewOpen?: boolean;
 }) {
   const statusLabel = () => {
+    const sprintDueDate =
+      sprint?.sprintDueDate instanceof Date ? sprint.sprintDueDate : new Date();
+    const reviewDueDate =
+      sprint?.reviewDueDate instanceof Date ? sprint.reviewDueDate : new Date();
+  
     if (!isReviewOpen && !isPastSprintDueDate) {
-      return `Opens ${sprint?.sprintDueDate?.toLocaleDateString()}`;
+      return `Opens ${sprintDueDate.toLocaleDateString()}`;
     }
-
     if (!isReviewOpen && isPastSprintDueDate) {
-      return `Closed ${sprint?.reviewDueDate?.toLocaleDateString()}`;
+      return `Closed ${reviewDueDate.toLocaleDateString()}`;
     }
-
-    return `Due ${sprint?.reviewDueDate?.toLocaleDateString()} ${sprint?.reviewDueDate?.toLocaleTimeString()}`;
-  };
+    return `Due ${reviewDueDate.toLocaleDateString()} ${reviewDueDate.toLocaleTimeString()}`;
+  };  
 
   return (
     <Card>
@@ -39,7 +43,7 @@ function SprintCard({
           <h2 className="text-lg font-semibold">
             Sprint {sprint.id}: {sprint.name || "Unnamed Sprint"}
           </h2>
-          <p className="text-sm text-gray-500">{statusLabel()}</p>
+          <p className="text-sm text-muted-foreground">{statusLabel()}</p>
         </div>
       </CardContent>
     </Card>
@@ -57,17 +61,22 @@ export default function ChooseSprint() {
       return response.data.map((sprint: any) => ({
         id: sprint.id || "",
         name: sprint.name || "Unnamed Sprint",
-        sprintDueDate: new Date(sprint.sprintDueDate?._seconds * 1000 || Date.now()),
-        reviewDueDate: new Date(sprint.reviewDueDate?._seconds * 1000 || Date.now()),
+        sprintDueDate: sprint.sprintDueDate?._seconds
+          ? new Date(sprint.sprintDueDate._seconds * 1000)
+          : new Date(),
+        reviewDueDate: sprint.reviewDueDate?._seconds
+          ? new Date(sprint.reviewDueDate._seconds * 1000)
+          : new Date(),
       }));
     },
     enabled: !authLoading,
   });
+  
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <p>Loading sprints...</p>
+        <Spinner />
       </div>
     );
   }
@@ -85,7 +94,7 @@ export default function ChooseSprint() {
       <div className="w-full max-w-3xl">
         <h1 className="text-2xl font-bold mb-4 text-center">Select a Sprint</h1>
         <div className="space-y-8">
-          {sprints.map((sprint: Sprint) => (
+          {sprints?.map((sprint: Sprint) => (
             <Link
               to={`/sprint/${sprint.id}`}
               state={{ sprint }}
