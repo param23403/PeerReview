@@ -18,6 +18,7 @@ import { useMutation } from "@tanstack/react-query";
 import api from "../../api";
 import { FaCheckCircle } from "react-icons/fa";
 import BackButton from "../../components/BackButton";
+import RubricPopover from "../../components/Popover";
 
 const options = [
   { label: "Never", value: "1" },
@@ -233,7 +234,10 @@ export default function SprintReviewForm() {
             </RadioGroup>
 
             {/* Overall Evaluation Score */}
-            <h3 className="text-lg font-bold pt-4">Overall Score</h3>
+            <div className="flex items-center gap-2 pt-4">
+              <h3 className="text-lg font-bold">Overall Score</h3>
+              <RubricPopover />
+            </div>
             <RadioGroup
               value={formData.overallEvaluationScore}
               onValueChange={(value) =>
