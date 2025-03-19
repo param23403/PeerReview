@@ -12,6 +12,13 @@ interface Sprint {
   reviewDueDate: Date;
 }
 
+const getSprintStatus = (sprint: Sprint) => {
+  const currentDate = new Date();
+  const isPastSprintDueDate = currentDate > sprint.sprintDueDate;
+  const isReviewOpen = isPastSprintDueDate && currentDate <= sprint.reviewDueDate;
+  return { isPastSprintDueDate, isReviewOpen };
+};
+
 function SprintCard({
   sprint,
   isPastSprintDueDate = false,
@@ -88,17 +95,25 @@ export default function ChooseSprint() {
         <h1 className="text-2xl font-bold mb-2 text-center">Select a Sprint</h1>
         <h2 className="text-lg text-muted-foreground text-center mb-4">View Sprint details for {computingID}</h2>
         <div className="space-y-8">
-          {sprints?.map((sprint: Sprint) => (
-            <Link
-              to={`${sprint.id}`}
-              state={{ sprint }}
-              key={sprint.id}
-              className="block transition-shadow duration-200 hover:shadow-lg"
-              aria-label={`View Sprint ${sprint.id} details for ${computingID}`}
-            >
-              <SprintCard sprint={sprint} />
-            </Link>
-          ))}
+          {sprints?.map((sprint: Sprint) => {
+            const { isPastSprintDueDate, isReviewOpen } = getSprintStatus(sprint);
+
+            return (
+              <Link
+                to={`${sprint.id}`}
+                state={{ sprint }}
+                key={sprint.id}
+                className="block transition-shadow duration-200 hover:shadow-lg"
+                aria-label={`View Sprint ${sprint.id} details for ${computingID}`}
+              >
+                <SprintCard
+                  sprint={sprint}
+                  isPastSprintDueDate={isPastSprintDueDate}
+                  isReviewOpen={isReviewOpen}
+                />
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>
