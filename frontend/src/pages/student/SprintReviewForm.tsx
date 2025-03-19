@@ -56,6 +56,7 @@ export default function SprintReviewForm() {
   const { review } = location.state || {};
 
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   interface FormData {
     keptUpWithResponsibilities: string;
@@ -96,6 +97,7 @@ export default function SprintReviewForm() {
     },
     onSuccess: () => {
       setReviewSubmitted(true);
+      setIsSubmitting(false)
     },
     onError: () => {
       toast({
@@ -104,11 +106,14 @@ export default function SprintReviewForm() {
         variant: "destructive",
         duration: 3000,
       });
+      setIsSubmitting(false)
     },
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    setIsSubmitting(true)
 
     const validationFields: Omit<FormData, "improvementFeedback" | "strengthFeedback"> = {
       keptUpWithResponsibilities: formData.keptUpWithResponsibilities,
@@ -128,6 +133,7 @@ export default function SprintReviewForm() {
         variant: "destructive",
         duration: 3000,
       });
+      setIsSubmitting(false)
       return;
     }
 
@@ -174,7 +180,7 @@ export default function SprintReviewForm() {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={(e) => handleSubmit(e)} className="space-y-4">
             {/* Evaluation Section */}
             <h3 className="text-lg font-bold">Evaluation</h3>
               {evaluationQuestions.map(({ key, label }) => (
@@ -334,6 +340,7 @@ export default function SprintReviewForm() {
             <Button
               type="submit"
               className="w-full bg-primary text-primary-foreground"
+              disabled={isSubmitting}
             >
               Submit Evaluation
             </Button>
