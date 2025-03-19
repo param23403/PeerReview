@@ -10,7 +10,16 @@ interface Sprint {
   name: string;
   sprintDueDate: Date;
   reviewDueDate: Date;
+  completedReviews: number;
+  totalReviews: number;
 }
+
+const getSprintStatus = (sprint: Sprint) => {
+  const currentDate = new Date();
+  const isPastSprintDueDate = currentDate > sprint.sprintDueDate;
+  const isReviewOpen = isPastSprintDueDate && currentDate <= sprint.reviewDueDate;
+  return { isPastSprintDueDate, isReviewOpen };
+};
 
 function SprintCard({
   sprint,
@@ -26,7 +35,7 @@ function SprintCard({
       sprint?.sprintDueDate instanceof Date ? sprint.sprintDueDate : new Date();
     const reviewDueDate =
       sprint?.reviewDueDate instanceof Date ? sprint.reviewDueDate : new Date();
-  
+
     if (!isReviewOpen && !isPastSprintDueDate) {
       return `Opens ${sprintDueDate.toLocaleDateString()}`;
     }
@@ -88,17 +97,21 @@ export default function ManageSprints() {
       <div className="w-full max-w-3xl">
         <h1 className="text-2xl font-bold mb-4 text-center">Edit Sprints</h1>
         <div className="space-y-8">
-          {sprints?.map((sprint: Sprint) => (
-            <Link
-              to={`/edit-sprint/${sprint.id}`}
-              state={{ sprint }}
-              key={sprint.id}
-              className="block transition-shadow duration-200 hover:shadow-lg"
-              aria-label={`Edit Sprint ${sprint.id} details`}
-            >
-              <SprintCard sprint={sprint} />
-            </Link>
-          ))}
+          {sprints?.map((sprint: Sprint) => {
+            const { isPastSprintDueDate, isReviewOpen } = getSprintStatus(sprint);
+
+            return (
+              <Link
+                to={`/edit-sprint/${sprint.id}`}
+                state={{ sprint }}
+                key={sprint.id}
+                className="block transition-shadow duration-200 hover:shadow-lg"
+                aria-label={`Edit Sprint ${sprint.id} details`}
+              >
+                <SprintCard sprint={sprint} isPastSprintDueDate={isPastSprintDueDate} isReviewOpen={isReviewOpen} />
+              </Link>
+            )
+          })}
         </div>
       </div>
     </div>
